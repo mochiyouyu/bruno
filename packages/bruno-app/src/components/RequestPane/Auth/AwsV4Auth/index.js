@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import get from 'lodash/get';
 import { useTheme } from 'providers/Theme';
+import { useTranslation } from 'react-i18next';
 import { useDispatch } from 'react-redux';
 import SingleLineEditor from 'components/SingleLineEditor';
 import { updateAuth } from 'providers/ReduxStore/slices/collections';
@@ -12,6 +13,7 @@ import { useDetectSensitiveField } from 'hooks/useDetectSensitiveField';
 const AwsV4Auth = ({ item, collection, updateAuth, request, save }) => {
   const dispatch = useDispatch();
   const { storedTheme } = useTheme();
+  const { t } = useTranslation();
 
   const awsv4Auth = get(request, 'auth.awsv4', {});
   const { isSensitive } = useDetectSensitiveField(collection);
@@ -133,7 +135,7 @@ const AwsV4Auth = ({ item, collection, updateAuth, request, save }) => {
 
   return (
     <StyledWrapper className="mt-2 w-full">
-      <label className="block mb-1">Access Key ID</label>
+      <label className="block mb-1">{t('REQUEST_PANE.AUTH_FORM.ACCESS_KEY_ID', { defaultValue: 'Access Key ID' })}</label>
       <div className="single-line-editor-wrapper mb-3">
         <SingleLineEditor
           value={awsv4Auth.accessKeyId || ''}
@@ -147,7 +149,7 @@ const AwsV4Auth = ({ item, collection, updateAuth, request, save }) => {
         />
       </div>
 
-      <label className="block mb-1">Secret Access Key</label>
+      <label className="block mb-1">{t('REQUEST_PANE.AUTH_FORM.SECRET_ACCESS_KEY', { defaultValue: 'Secret Access Key' })}</label>
       <div className="single-line-editor-wrapper mb-3 flex items-center">
         <SingleLineEditor
           value={awsv4Auth.secretAccessKey || ''}
@@ -164,7 +166,7 @@ const AwsV4Auth = ({ item, collection, updateAuth, request, save }) => {
         {showWarning && <SensitiveFieldWarning fieldName="awsv4-secret-access-key" warningMessage={warningMessage} />}
       </div>
 
-      <label className="block mb-1">Session Token</label>
+      <label className="block mb-1">{t('REQUEST_PANE.AUTH_FORM.SESSION_TOKEN', { defaultValue: 'Session Token' })}</label>
       <div className="single-line-editor-wrapper mb-3">
         <SingleLineEditor
           value={awsv4Auth.sessionToken || ''}
@@ -178,7 +180,7 @@ const AwsV4Auth = ({ item, collection, updateAuth, request, save }) => {
         />
       </div>
 
-      <label className="block mb-1">Service</label>
+      <label className="block mb-1">{t('REQUEST_PANE.AUTH_FORM.SERVICE', { defaultValue: 'Service' })}</label>
       <div className="single-line-editor-wrapper mb-3">
         <SingleLineEditor
           value={awsv4Auth.service || ''}
@@ -192,7 +194,7 @@ const AwsV4Auth = ({ item, collection, updateAuth, request, save }) => {
         />
       </div>
 
-      <label className="block mb-1">Region</label>
+      <label className="block mb-1">{t('REQUEST_PANE.AUTH_FORM.REGION', { defaultValue: 'Region' })}</label>
       <div className="single-line-editor-wrapper mb-3">
         <SingleLineEditor
           value={awsv4Auth.region || ''}
@@ -206,7 +208,7 @@ const AwsV4Auth = ({ item, collection, updateAuth, request, save }) => {
         />
       </div>
 
-      <label className="block mb-1">Profile Name</label>
+      <label className="block mb-1">{t('REQUEST_PANE.AUTH_FORM.PROFILE_NAME', { defaultValue: 'Profile Name' })}</label>
       <div className="single-line-editor-wrapper">
         <SingleLineEditor
           value={awsv4Auth.profileName || ''}

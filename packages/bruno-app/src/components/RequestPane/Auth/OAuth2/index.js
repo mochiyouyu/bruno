@@ -8,10 +8,12 @@ import OAuth2Implicit from './Implicit/index';
 import OAuth2ClientCredentials from './ClientCredentials/index';
 import { updateAuth } from 'providers/ReduxStore/slices/collections';
 import { saveRequest, sendRequest } from 'providers/ReduxStore/slices/collections/actions';
+import { useTranslation } from 'react-i18next';
 import { useDispatch } from 'react-redux';
 
 const GrantTypeComponentMap = ({ item, collection }) => {
   const dispatch = useDispatch();
+  const { t } = useTranslation();
 
   const save = () => {
     dispatch(saveRequest(item.uid, collection.uid));
@@ -38,7 +40,7 @@ const GrantTypeComponentMap = ({ item, collection }) => {
       return <OAuth2ClientCredentials item={item} save={save} request={request} handleRun={handleRun} updateAuth={updateAuth} collection={collection} />;
       break;
     default:
-      return <div>TBD</div>;
+      return <div>{t('REQUEST_PANE.AUTH_FORM.NOT_AVAILABLE', { defaultValue: 'Not available yet' })}</div>;
       break;
   }
 };

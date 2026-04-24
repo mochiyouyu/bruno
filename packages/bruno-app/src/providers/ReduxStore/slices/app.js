@@ -36,7 +36,8 @@ const initialState = {
       codeFont: 'default'
     },
     general: {
-      defaultLocation: ''
+      defaultLocation: '',
+      language: 'en'
     },
     onboarding: {
       hasLaunchedBefore: false,

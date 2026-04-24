@@ -3,6 +3,7 @@ import SensitiveFieldWarning from 'components/SensitiveFieldWarning';
 import { useDetectSensitiveField } from 'hooks/useDetectSensitiveField';
 import get from 'lodash/get';
 import { useTheme } from 'providers/Theme';
+import { useTranslation } from 'react-i18next';
 import { useDispatch } from 'react-redux';
 import SingleLineEditor from 'components/SingleLineEditor';
 import { updateAuth } from 'providers/ReduxStore/slices/collections';
@@ -12,6 +13,7 @@ import StyledWrapper from './StyledWrapper';
 const NTLMAuth = ({ item, collection, request, save, updateAuth }) => {
   const dispatch = useDispatch();
   const { storedTheme } = useTheme();
+  const { t } = useTranslation();
 
   const ntlmAuth = get(request, 'auth.ntlm', {});
   const { isSensitive } = useDetectSensitiveField(collection);
@@ -70,7 +72,7 @@ const NTLMAuth = ({ item, collection, request, save, updateAuth }) => {
 
   return (
     <StyledWrapper className="mt-2 w-full">
-      <label className="block mb-1">Username</label>
+      <label className="block mb-1">{t('REQUEST_PANE.AUTH_FORM.USERNAME', { defaultValue: 'Username' })}</label>
       <div className="single-line-editor-wrapper mb-3">
         <SingleLineEditor
           value={ntlmAuth.username || ''}
@@ -84,7 +86,7 @@ const NTLMAuth = ({ item, collection, request, save, updateAuth }) => {
         />
       </div>
 
-      <label className="block mb-1">Password</label>
+      <label className="block mb-1">{t('REQUEST_PANE.AUTH_FORM.PASSWORD', { defaultValue: 'Password' })}</label>
       <div className="single-line-editor-wrapper mb-3 flex items-center">
         <SingleLineEditor
           value={ntlmAuth.password || ''}
@@ -100,7 +102,7 @@ const NTLMAuth = ({ item, collection, request, save, updateAuth }) => {
         {showWarning && <SensitiveFieldWarning fieldName="ntlm-password" warningMessage={warningMessage} />}
       </div>
 
-      <label className="block mb-1">Domain</label>
+      <label className="block mb-1">{t('REQUEST_PANE.AUTH_FORM.DOMAIN', { defaultValue: 'Domain' })}</label>
       <div className="single-line-editor-wrapper">
         <SingleLineEditor
           value={ntlmAuth.domain || ''}

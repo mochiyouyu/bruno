@@ -12,6 +12,7 @@ import { useDetectSensitiveField } from 'hooks/useDetectSensitiveField';
 import toast from 'react-hot-toast';
 import { sendRequest, browseFiles } from 'providers/ReduxStore/slices/collections/actions';
 import StyledWrapper from './StyledWrapper';
+import { useTranslation } from 'react-i18next';
 
 const signatureMethodLabels = {
   'HMAC-SHA1': 'HMAC-SHA1',
@@ -32,6 +33,7 @@ const placementLabels = {
 const OAuth1 = ({ item = {}, collection, request, save, updateAuth }) => {
   const dispatch = useDispatch();
   const { storedTheme } = useTheme();
+  const { t } = useTranslation();
   const oauth1 = get(request, 'auth.oauth1', {});
   const [advancedOpen, setAdvancedOpen] = useState(false);
 
@@ -59,7 +61,7 @@ const OAuth1 = ({ item = {}, collection, request, save, updateAuth }) => {
 
   const handlePrivateKeyChange = (val) => {
     if (val && /^@file\(/.test(val.trim())) {
-      toast.error('File references should be added using the "Upload File" button below');
+      toast.error(t('OAUTH.OAUTH1.FILE_REF_WARNING', { defaultValue: 'File references should be added using the "Upload File" button below' }));
       return;
     }
     handleChange('privateKey', val);
@@ -116,12 +118,12 @@ const OAuth1 = ({ item = {}, collection, request, save, updateAuth }) => {
           <IconSettings size={14} className="oauth1-icon" />
         </div>
         <span className="oauth1-section-label">
-          Configuration
+          {t('OAUTH.COMMON.CONFIGURATION', { defaultValue: 'Configuration' })}
         </span>
       </div>
 
       <div className="flex items-center gap-4 w-full">
-        <label className="block min-w-[140px]">Consumer Key</label>
+        <label className="block min-w-[140px]">{t('OAUTH.OAUTH1.CONSUMER_KEY', { defaultValue: 'Consumer Key' })}</label>
         <div className="single-line-editor-wrapper flex-1">
           <SingleLineEditor
             value={oauth1.consumerKey || ''}
@@ -138,7 +140,7 @@ const OAuth1 = ({ item = {}, collection, request, save, updateAuth }) => {
 
       {!oauth1.signatureMethod?.startsWith('RSA-') && (
         <div className="flex items-center gap-4 w-full">
-          <label className="block min-w-[140px]">Consumer Secret</label>
+          <label className="block min-w-[140px]">{t('OAUTH.OAUTH1.CONSUMER_SECRET', { defaultValue: 'Consumer Secret' })}</label>
           <div className="single-line-editor-wrapper flex-1 flex items-center">
             <SingleLineEditor
               value={oauth1.consumerSecret || ''}
@@ -157,7 +159,7 @@ const OAuth1 = ({ item = {}, collection, request, save, updateAuth }) => {
       )}
 
       <div className="flex items-center gap-4 w-full">
-        <label className="block min-w-[140px]">Token</label>
+        <label className="block min-w-[140px]">{t('OAUTH.COMMON.TOKEN', { defaultValue: 'Token' })}</label>
         <div className="single-line-editor-wrapper flex-1">
           <SingleLineEditor
             value={oauth1.accessToken || ''}
@@ -173,7 +175,7 @@ const OAuth1 = ({ item = {}, collection, request, save, updateAuth }) => {
       </div>
 
       <div className="flex items-center gap-4 w-full">
-        <label className="block min-w-[140px]">Token Secret</label>
+        <label className="block min-w-[140px]">{t('OAUTH.OAUTH1.TOKEN_SECRET', { defaultValue: 'Token Secret' })}</label>
         <div className="single-line-editor-wrapper flex-1 flex items-center">
           <SingleLineEditor
             value={oauth1.accessTokenSecret || ''}
@@ -196,12 +198,12 @@ const OAuth1 = ({ item = {}, collection, request, save, updateAuth }) => {
           <IconShieldLock size={14} className="oauth1-icon" />
         </div>
         <span className="oauth1-section-label">
-          Signature
+          {t('OAUTH.OAUTH1.SIGNATURE', { defaultValue: 'Signature' })}
         </span>
       </div>
 
       <div className="flex items-center gap-4 w-full">
-        <label className="block min-w-[140px]">Signature Method</label>
+        <label className="block min-w-[140px]">{t('OAUTH.OAUTH1.SIGNATURE_METHOD', { defaultValue: 'Signature Method' })}</label>
         <div className="inline-flex items-center cursor-pointer oauth1-dropdown-selector">
           <MenuDropdown
             items={Object.entries(signatureMethodLabels).map(([value, label]) => ({
@@ -222,7 +224,7 @@ const OAuth1 = ({ item = {}, collection, request, save, updateAuth }) => {
 
       {oauth1.signatureMethod?.startsWith('RSA-') && (
         <div className="flex items-start gap-4 w-full">
-          <label className="block min-w-[140px] mt-1">Private Key</label>
+          <label className="block min-w-[140px] mt-1">{t('OAUTH.OAUTH1.PRIVATE_KEY', { defaultValue: 'Private Key' })}</label>
           {isFileRef ? (
             <div className="private-key-editor-wrapper flex-1 flex items-center gap-2">
               <IconFile size={16} className="oauth1-icon flex-shrink-0" />
@@ -230,7 +232,7 @@ const OAuth1 = ({ item = {}, collection, request, save, updateAuth }) => {
               <button
                 className="flex-shrink-0 oauth1-icon cursor-pointer"
                 onClick={handleClearFile}
-                title="Clear file"
+                title={t('OAUTH.OAUTH1.CLEAR_FILE', { defaultValue: 'Clear file' })}
                 type="button"
               >
                 <IconX size={14} />
@@ -256,11 +258,11 @@ const OAuth1 = ({ item = {}, collection, request, save, updateAuth }) => {
                 <button
                   className="flex items-center gap-1 oauth1-icon cursor-pointer text-link"
                   onClick={handleBrowse}
-                  title="Select file"
+                  title={t('OAUTH.OAUTH1.SELECT_FILE', { defaultValue: 'Select file' })}
                   type="button"
                 >
                   <IconUpload size={14} />
-                  <span className="text-xs">Upload File</span>
+                  <span className="text-xs">{t('OAUTH.OAUTH1.UPLOAD_FILE', { defaultValue: 'Upload File' })}</span>
                 </button>
               </div>
             </div>
@@ -269,19 +271,19 @@ const OAuth1 = ({ item = {}, collection, request, save, updateAuth }) => {
       )}
 
       <div className="flex items-center gap-4 w-full">
-        <label className="block min-w-[140px]">Add Params To</label>
+        <label className="block min-w-[140px]">{t('OAUTH.OAUTH1.ADD_PARAMS_TO', { defaultValue: 'Add Params To' })}</label>
         <div className="inline-flex items-center cursor-pointer oauth1-dropdown-selector">
           <MenuDropdown
             items={Object.entries(placementLabels).map(([value, label]) => ({
               id: value,
-              label,
+              label: t(`OAUTH.OAUTH1.PLACEMENT.${value.toUpperCase()}`, { defaultValue: label }),
               onClick: () => handleChange('placement', value)
             }))}
             selectedItemId={oauth1.placement}
             placement="bottom-end"
           >
             <div className="flex items-center justify-end oauth1-dropdown-label select-none">
-              {placementLabels[oauth1.placement] || 'Header'}
+              {t(`OAUTH.OAUTH1.PLACEMENT.${(oauth1.placement || 'header').toUpperCase()}`, { defaultValue: placementLabels[oauth1.placement] || 'Header' })}
               <IconCaretDown className="caret ml-1 mr-1" size={14} strokeWidth={2} />
             </div>
           </MenuDropdown>
@@ -292,7 +294,7 @@ const OAuth1 = ({ item = {}, collection, request, save, updateAuth }) => {
         <div className="flex items-center gap-4 w-full">
           <label className="block min-w-[140px]"></label>
           <span className="text-xs opacity-60">
-            Body placement requires a form-urlencoded body. Non-form payloads will be replaced with OAuth parameters.
+            {t('OAUTH.OAUTH1.BODY_PLACEMENT_HINT', { defaultValue: 'Body placement requires a form-urlencoded body. Non-form payloads will be replaced with OAuth parameters.' })}
           </span>
         </div>
       )}
@@ -311,7 +313,7 @@ const OAuth1 = ({ item = {}, collection, request, save, updateAuth }) => {
               e.preventDefault(); handleChange('includeBodyHash', !oauth1.includeBodyHash);
             }}
           >
-            Include Body Hash
+            {t('OAUTH.OAUTH1.INCLUDE_BODY_HASH', { defaultValue: 'Include Body Hash' })}
           </label>
         </div>
       </div>
@@ -325,7 +327,7 @@ const OAuth1 = ({ item = {}, collection, request, save, updateAuth }) => {
           <IconAdjustmentsHorizontal size={14} className="oauth1-icon" />
         </div>
         <span className="oauth1-section-label">
-          Advanced
+          {t('OAUTH.COMMON.ADVANCED', { defaultValue: 'Advanced' })}
         </span>
         <IconChevronRight
           size={14}
@@ -336,7 +338,7 @@ const OAuth1 = ({ item = {}, collection, request, save, updateAuth }) => {
       {advancedOpen && (
         <>
           <div className="flex items-center gap-4 w-full">
-            <label className="block min-w-[140px]">Callback URL</label>
+            <label className="block min-w-[140px]">{t('OAUTH.COMMON.CALLBACK_URL', { defaultValue: 'Callback URL' })}</label>
             <div className="single-line-editor-wrapper flex-1">
               <SingleLineEditor
                 value={oauth1.callbackUrl || ''}
@@ -352,7 +354,7 @@ const OAuth1 = ({ item = {}, collection, request, save, updateAuth }) => {
           </div>
 
           <div className="flex items-center gap-4 w-full">
-            <label className="block min-w-[140px]">Verifier</label>
+            <label className="block min-w-[140px]">{t('OAUTH.OAUTH1.VERIFIER', { defaultValue: 'Verifier' })}</label>
             <div className="single-line-editor-wrapper flex-1">
               <SingleLineEditor
                 value={oauth1.verifier || ''}
@@ -368,7 +370,7 @@ const OAuth1 = ({ item = {}, collection, request, save, updateAuth }) => {
           </div>
 
           <div className="flex items-center gap-4 w-full">
-            <label className="block min-w-[140px]">Timestamp</label>
+            <label className="block min-w-[140px]">{t('OAUTH.OAUTH1.TIMESTAMP', { defaultValue: 'Timestamp' })}</label>
             <div className="single-line-editor-wrapper flex-1">
               <SingleLineEditor
                 value={oauth1.timestamp || ''}
@@ -384,7 +386,7 @@ const OAuth1 = ({ item = {}, collection, request, save, updateAuth }) => {
           </div>
 
           <div className="flex items-center gap-4 w-full">
-            <label className="block min-w-[140px]">Nonce</label>
+            <label className="block min-w-[140px]">{t('OAUTH.OAUTH1.NONCE', { defaultValue: 'Nonce' })}</label>
             <div className="single-line-editor-wrapper flex-1">
               <SingleLineEditor
                 value={oauth1.nonce || ''}
@@ -400,7 +402,7 @@ const OAuth1 = ({ item = {}, collection, request, save, updateAuth }) => {
           </div>
 
           <div className="flex items-center gap-4 w-full">
-            <label className="block min-w-[140px]">Version</label>
+            <label className="block min-w-[140px]">{t('OAUTH.OAUTH1.VERSION', { defaultValue: 'Version' })}</label>
             <div className="single-line-editor-wrapper flex-1">
               <SingleLineEditor
                 value={oauth1.version || ''}
@@ -416,7 +418,7 @@ const OAuth1 = ({ item = {}, collection, request, save, updateAuth }) => {
           </div>
 
           <div className="flex items-center gap-4 w-full">
-            <label className="block min-w-[140px]">Realm</label>
+            <label className="block min-w-[140px]">{t('OAUTH.OAUTH1.REALM', { defaultValue: 'Realm' })}</label>
             <div className="single-line-editor-wrapper flex-1">
               <SingleLineEditor
                 value={oauth1.realm || ''}

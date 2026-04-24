@@ -24,6 +24,7 @@ import StyledWrapper from './StyledWrapper';
 import ResponseLayoutToggle from 'components/ResponsePane/ResponseLayoutToggle';
 import { isMacOS, isWindowsOS, isLinuxOS } from 'utils/common/platform';
 import classNames from 'classnames';
+import { useTranslation } from 'react-i18next';
 
 const getOsClass = () => {
   if (isMacOS()) return 'os-mac';
@@ -33,8 +34,8 @@ const getOsClass = () => {
 };
 
 // Helper to get display name for workspace
-export const getWorkspaceDisplayName = (name) => {
-  if (!name) return 'Untitled Workspace';
+export const getWorkspaceDisplayName = (name, fallbackLabel = 'Untitled Workspace') => {
+  if (!name) return fallbackLabel;
   return name;
 };
 
@@ -46,6 +47,7 @@ const AppTitleBar = () => {
   const isWindows = osClass === 'os-windows';
   const isLinux = osClass === 'os-linux';
   const showWindowControls = isWindows || isLinux;
+  const { t } = useTranslation();
 
   // Listen for fullscreen changes
   useEffect(() => {
@@ -124,7 +126,12 @@ const AppTitleBar = () => {
   const WorkspaceName = forwardRef((props, ref) => {
     return (
       <div ref={ref} className="workspace-name-container" {...props}>
-        <span data-testid="workspace-name" className={classNames('workspace-name', { 'italic text-muted': !activeWorkspace?.name })}>{getWorkspaceDisplayName(activeWorkspace?.name)}</span>
+        <span data-testid="workspace-name" className={classNames('workspace-name', { 'italic text-muted': !activeWorkspace?.name })}>
+          {getWorkspaceDisplayName(
+            activeWorkspace?.name,
+            t('TITLEBAR.UNTITLED_WORKSPACE', { defaultValue: 'Untitled Workspace' })
+          )}
+        </span>
         <IconChevronDown size={14} stroke={1.5} className="chevron-icon" />
       </div>
     );
@@ -139,15 +146,23 @@ const AppTitleBar = () => {
 
   const handleWorkspaceSwitch = (workspaceUid) => {
     dispatch(switchWorkspace(workspaceUid));
-    toast.success(`Switched to ${getWorkspaceDisplayName(workspaces.find((w) => w.uid === workspaceUid)?.name)}`);
+    toast.success(
+      t('TITLEBAR.SWITCHED_TO_WORKSPACE', {
+        defaultValue: 'Switched to {{name}}',
+        name: getWorkspaceDisplayName(
+          workspaces.find((w) => w.uid === workspaceUid)?.name,
+          t('TITLEBAR.UNTITLED_WORKSPACE', { defaultValue: 'Untitled Workspace' })
+        )
+      })
+    );
   };
 
   const handleOpenWorkspace = async () => {
     try {
       await dispatch(openWorkspaceDialog());
-      toast.success('Workspace opened successfully');
+      toast.success(t('TITLEBAR.WORKSPACE_OPENED_SUCCESS', { defaultValue: 'Workspace opened successfully' }));
     } catch (error) {
-      toast.error(error.message || 'Failed to open workspace');
+      toast.error(error.message || t('TITLEBAR.WORKSPACE_OPEN_FAILED', { defaultValue: 'Failed to open workspace' }));
     }
   };
 
@@ -161,9 +176,9 @@ const AppTitleBar = () => {
     try {
       await dispatch(createWorkspaceWithUniqueName(defaultLocation));
     } catch (error) {
-      toast.error(error?.message || 'Failed to create workspace');
+      toast.error(error?.message || t('TITLEBAR.WORKSPACE_CREATE_FAILED', { defaultValue: 'Failed to create workspace' }));
     }
-  }, [preferences, dispatch]);
+  }, [preferences, dispatch, t]);
 
   const handleManageWorkspaces = () => {
     dispatch(showManageWorkspacePage());
@@ -200,7 +215,10 @@ const AppTitleBar = () => {
 
       return {
         id: workspace.uid,
-        label: getWorkspaceDisplayName(workspace.name),
+        label: getWorkspaceDisplayName(
+          workspace.name,
+          t('TITLEBAR.UNTITLED_WORKSPACE', { defaultValue: 'Untitled Workspace' })
+        ),
         onClick: () => handleWorkspaceSwitch(workspace.uid),
         className: `workspace-item ${isActive ? 'active' : ''}`,
         rightSection: (
@@ -209,7 +227,9 @@ const AppTitleBar = () => {
               <ActionIcon
                 className={`pin-btn ${isPinned ? 'pinned' : ''}`}
                 onClick={(e) => handlePinWorkspace(workspace.uid, e)}
-                label={isPinned ? 'Unpin workspace' : 'Pin workspace'}
+                label={isPinned
+                  ? t('TITLEBAR.UNPIN_WORKSPACE', { defaultValue: 'Unpin workspace' })
+                  : t('TITLEBAR.PIN_WORKSPACE', { defaultValue: 'Pin workspace' })}
                 size="sm"
               >
                 {isPinned ? <IconPinned size={14} stroke={1.5} /> : <IconPin size={14} stroke={1.5} />}
@@ -223,35 +243,35 @@ const AppTitleBar = () => {
 
     // Add label and action items
     items.push(
-      { type: 'label', label: 'Workspaces' },
+      { type: 'label', label: t('TITLEBAR.WORKSPACES', { defaultValue: 'Workspaces' }) },
       {
         id: 'create-workspace',
         leftSection: IconPlus,
-        label: 'Create workspace',
+        label: t('TITLEBAR.CREATE_WORKSPACE', { defaultValue: 'Create workspace' }),
         onClick: handleCreateWorkspace
       },
       {
         id: 'open-workspace',
         leftSection: IconFolder,
-        label: 'Open workspace',
+        label: t('TITLEBAR.OPEN_WORKSPACE', { defaultValue: 'Open workspace' }),
         onClick: handleOpenWorkspace
       },
       {
         id: 'import-workspace',
         leftSection: IconDownload,
-        label: 'Import workspace',
+        label: t('TITLEBAR.IMPORT_WORKSPACE', { defaultValue: 'Import workspace' }),
         onClick: handleImportWorkspace
       },
       {
         id: 'manage-workspaces',
         leftSection: IconSettings,
-        label: 'Manage workspaces',
+        label: t('TITLEBAR.MANAGE_WORKSPACES', { defaultValue: 'Manage workspaces' }),
         onClick: handleManageWorkspaces
       }
     );
 
     return items;
-  }, [sortedWorkspaces, activeWorkspaceUid, preferences, handlePinWorkspace, handleCreateWorkspace]);
+  }, [sortedWorkspaces, activeWorkspaceUid, preferences, handlePinWorkspace, handleCreateWorkspace, t]);
 
   return (
     <StyledWrapper className={`app-titlebar ${osClass} ${isFullScreen ? 'fullscreen' : ''}`}>
@@ -266,7 +286,7 @@ const AppTitleBar = () => {
         <div className="titlebar-left">
           {showWindowControls && <AppMenu />}
 
-          <ActionIcon onClick={handleHomeClick} label="Home" size="lg" className="home-button">
+          <ActionIcon onClick={handleHomeClick} label={t('TITLEBAR.HOME', { defaultValue: 'Home' })} size="lg" className="home-button">
             <IconHome size={16} stroke={1.5} />
           </ActionIcon>
 
@@ -293,7 +313,9 @@ const AppTitleBar = () => {
             {/* Toggle sidebar */}
             <ActionIcon
               onClick={handleToggleSidebar}
-              label={sidebarCollapsed ? 'Show sidebar' : 'Hide sidebar'}
+              label={sidebarCollapsed
+                ? t('TITLEBAR.SHOW_SIDEBAR', { defaultValue: 'Show sidebar' })
+                : t('TITLEBAR.HIDE_SIDEBAR', { defaultValue: 'Hide sidebar' })}
               size="lg"
               data-testid="toggle-sidebar-button"
             >
@@ -303,7 +325,9 @@ const AppTitleBar = () => {
             {/* Toggle devtools */}
             <ActionIcon
               onClick={handleToggleDevtools}
-              label={isConsoleOpen ? 'Hide devtools' : 'Show devtools'}
+              label={isConsoleOpen
+                ? t('TITLEBAR.HIDE_DEVTOOLS', { defaultValue: 'Hide devtools' })
+                : t('TITLEBAR.SHOW_DEVTOOLS', { defaultValue: 'Show devtools' })}
               size="lg"
               data-testid="toggle-devtools-button"
             >
@@ -318,21 +342,23 @@ const AppTitleBar = () => {
               <button
                 className="window-control-btn minimize"
                 onClick={handleMinimize}
-                aria-label="Minimize"
+                aria-label={t('TITLEBAR.MINIMIZE', { defaultValue: 'Minimize' })}
               >
                 <IconMinus size={16} stroke={1} />
               </button>
               <button
                 className="window-control-btn maximize"
                 onClick={handleMaximize}
-                aria-label={isMaximized ? 'Restore' : 'Maximize'}
+                aria-label={isMaximized
+                  ? t('TITLEBAR.RESTORE', { defaultValue: 'Restore' })
+                  : t('TITLEBAR.MAXIMIZE', { defaultValue: 'Maximize' })}
               >
                 {isMaximized ? <IconCopy size={14} stroke={1} /> : <IconSquare size={14} stroke={1} />}
               </button>
               <button
                 className="window-control-btn close"
                 onClick={handleClose}
-                aria-label="Close"
+                aria-label={t('TITLEBAR.CLOSE', { defaultValue: 'Close' })}
               >
                 <IconX size={16} stroke={1} />
               </button>

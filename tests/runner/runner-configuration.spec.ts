@@ -1,5 +1,5 @@
 import { test, expect } from '../../playwright';
-import { openRunnerTab, buildRunnerLocators } from '../utils/page/index';
+import { openRunnerTab, buildRunnerCompatLocators } from '../utils/page/index';
 
 const COLLECTION_NAME = 'bruno-testbench';
 
@@ -21,7 +21,7 @@ const waitForRequestsInitialized = async (locators) => {
 
 test.describe('Runner Configuration Panel', () => {
   test('should display config panel with all requests selected by default', async ({ pageWithUserData: page }) => {
-    const locators = buildRunnerLocators(page);
+    const locators = buildRunnerCompatLocators(page);
     await openRunnerTab(page, COLLECTION_NAME);
     await waitForRequestsInitialized(locators);
 
@@ -44,7 +44,7 @@ test.describe('Runner Configuration Panel', () => {
   });
 
   test('should toggle select all / deselect all', async ({ pageWithUserData: page }) => {
-    const locators = buildRunnerLocators(page);
+    const locators = buildRunnerCompatLocators(page);
     await openRunnerTab(page, COLLECTION_NAME);
     await waitForRequestsInitialized(locators);
 
@@ -64,7 +64,7 @@ test.describe('Runner Configuration Panel', () => {
   });
 
   test('should deselect individual request items', async ({ pageWithUserData: page }) => {
-    const locators = buildRunnerLocators(page);
+    const locators = buildRunnerCompatLocators(page);
     await openRunnerTab(page, COLLECTION_NAME);
     await waitForRequestsInitialized(locators);
 
@@ -95,7 +95,7 @@ test.describe('Runner Configuration Panel', () => {
   });
 
   test('should set delay value', async ({ pageWithUserData: page }) => {
-    const locators = buildRunnerLocators(page);
+    const locators = buildRunnerCompatLocators(page);
     await openRunnerTab(page, COLLECTION_NAME);
 
     await test.step('Enter delay value', async () => {
@@ -107,7 +107,7 @@ test.describe('Runner Configuration Panel', () => {
   });
 
   test('should reset config panel to defaults', async ({ pageWithUserData: page }) => {
-    const locators = buildRunnerLocators(page);
+    const locators = buildRunnerCompatLocators(page);
     await openRunnerTab(page, COLLECTION_NAME);
     await waitForRequestsInitialized(locators);
 
@@ -135,7 +135,7 @@ test.describe('Runner Configuration Panel', () => {
   });
 
   test('should disable run button when no requests selected', async ({ pageWithUserData: page }) => {
-    const locators = buildRunnerLocators(page);
+    const locators = buildRunnerCompatLocators(page);
     await openRunnerTab(page, COLLECTION_NAME);
     await waitForRequestsInitialized(locators);
 

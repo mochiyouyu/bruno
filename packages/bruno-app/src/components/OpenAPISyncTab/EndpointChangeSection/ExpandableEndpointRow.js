@@ -7,6 +7,7 @@ import {
   IconX,
   IconLoader2
 } from '@tabler/icons';
+import { useTranslation } from 'react-i18next';
 import { toggleRowExpanded } from 'providers/ReduxStore/slices/openapi-sync';
 import MethodBadge from 'ui/MethodBadge';
 import { formatIpcError } from 'utils/common/error';
@@ -17,6 +18,7 @@ import EndpointVisualDiff from './EndpointVisualDiff';
 // Expandable row - can be used with or without decision buttons
 const ExpandableEndpointRow = ({ endpoint, decision, onDecisionChange, collectionPath, newSpec, showDecisions = true, decisionLabels, diffLeftLabel, diffRightLabel, swapDiffSides, collectionUid, actions }) => {
   const dispatch = useDispatch();
+  const { t } = useTranslation();
   const rowKey = endpoint.id || `${endpoint.method}-${endpoint.path}`;
   const isExpanded = useSelector((state) => {
     return state.openapiSync?.tabUiState?.[collectionUid]?.expandedRows?.[rowKey] || false;
@@ -45,11 +47,11 @@ const ExpandableEndpointRow = ({ endpoint, decision, onDecisionChange, collectio
         setDiffData(result);
       }
     } catch (err) {
-      setError(formatIpcError(err) || 'Failed to load diff data');
+      setError(formatIpcError(err) || t('OPENAPI_SYNC.ENDPOINT_ROW.LOAD_DIFF_FAILED', { defaultValue: 'Failed to load diff data' }));
     } finally {
       setIsLoading(false);
     }
-  }, [collectionPath, endpoint.id, newSpec]);
+  }, [collectionPath, diffData, endpoint.id, newSpec, t]);
 
   // Load diff data when expanded (e.g. restored from Redux state)
   useEffect(() => {
@@ -94,11 +96,13 @@ const ExpandableEndpointRow = ({ endpoint, decision, onDecisionChange, collectio
             status="danger"
             rightSection={(
               <Help icon="info" size={11} placement="top" width={250}>
-                This endpoint was modified in both the spec and your collection. Choose which version to keep.
+                {t('OPENAPI_SYNC.ENDPOINT_ROW.CONFLICT_HELP', {
+                  defaultValue: 'This endpoint was modified in both the spec and your collection. Choose which version to keep.'
+                })}
               </Help>
             )}
           >
-            Conflict
+            {t('OPENAPI_SYNC.REVIEW.CONFLICT', { defaultValue: 'Conflict' })}
           </StatusBadge>
         )}
 
@@ -109,16 +113,16 @@ const ExpandableEndpointRow = ({ endpoint, decision, onDecisionChange, collectio
             <button
               className={`decision-btn keep ${decision === 'keep-mine' ? 'selected' : ''}`}
               onClick={() => onDecisionChange('keep-mine')}
-              title="Keep your local version"
+              title={t('OPENAPI_SYNC.ENDPOINT_ROW.KEEP_LOCAL_TITLE', { defaultValue: 'Keep your local version' })}
             >
-              <IconX size={12} /> {decisionLabels?.keep || 'Keep Mine'}
+              <IconX size={12} /> {decisionLabels?.keep || t('OPENAPI_SYNC.ENDPOINT_ROW.KEEP_MINE', { defaultValue: 'Keep Mine' })}
             </button>
             <button
               className={`decision-btn accept ${decision === 'accept-incoming' ? 'selected' : ''}`}
               onClick={() => onDecisionChange('accept-incoming')}
-              title="Accept the spec version"
+              title={t('OPENAPI_SYNC.ENDPOINT_ROW.ACCEPT_SPEC_TITLE', { defaultValue: 'Accept the spec version' })}
             >
-              <IconCheck size={12} /> {decisionLabels?.accept || 'Accept Spec'}
+              <IconCheck size={12} /> {decisionLabels?.accept || t('OPENAPI_SYNC.ENDPOINT_ROW.ACCEPT_SPEC', { defaultValue: 'Accept Spec' })}
             </button>
           </div>
         )}
@@ -129,20 +133,20 @@ const ExpandableEndpointRow = ({ endpoint, decision, onDecisionChange, collectio
           {isLoading && (
             <div className="diff-loading">
               <IconLoader2 size={16} className="spinning" />
-              <span>Loading diff...</span>
+              <span>{t('OPENAPI_SYNC.ENDPOINT_ROW.LOADING', { defaultValue: 'Loading diff...' })}</span>
             </div>
           )}
           {error && (
             <div className="diff-error">
-              Error: {error}
+              {t('OPENAPI_SYNC.ENDPOINT_ROW.ERROR_PREFIX', { defaultValue: 'Error:' })} {error}
             </div>
           )}
           {diffData && !isLoading && !error && (
             <EndpointVisualDiff
               oldData={diffData.oldData}
               newData={diffData.newData}
-              leftLabel={diffLeftLabel || 'Current (in collection)'}
-              rightLabel={diffRightLabel || 'Expected (from spec)'}
+              leftLabel={diffLeftLabel || t('OPENAPI_SYNC.ENDPOINT_ROW.CURRENT_IN_COLLECTION', { defaultValue: 'Current (in collection)' })}
+              rightLabel={diffRightLabel || t('OPENAPI_SYNC.ENDPOINT_ROW.EXPECTED_FROM_SPEC', { defaultValue: 'Expected (from spec)' })}
               swapSides={swapDiffSides}
             />
           )}

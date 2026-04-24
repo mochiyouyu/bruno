@@ -1,8 +1,10 @@
 import { useState } from 'react';
 import toast from 'react-hot-toast';
+import { useTranslation } from 'react-i18next';
 
 const useEndpointActions = (collection, collectionDrift, reloadDrift) => {
   const [pendingAction, setPendingAction] = useState(null);
+  const { t } = useTranslation();
 
   // Action execution helper — runs IPC call(s), shows toast, reloads drift
   const executeEndpointAction = async (ipcCalls, successMsg, errorMsg) => {
@@ -26,8 +28,11 @@ const useEndpointActions = (collection, collectionDrift, reloadDrift) => {
   const handleResetEndpoint = (endpoint) => {
     setPendingAction({
       type: 'reset-endpoint',
-      title: 'Reset Endpoint',
-      message: `Are you sure you want to reset "${endpoint.method} ${endpoint.path}" to match the spec? Your local changes will be lost.`,
+      title: t('OPENAPI_SYNC.COLLECTION_STATUS.ACTIONS.RESET_ENDPOINT_TITLE', { defaultValue: 'Reset Endpoint' }),
+      message: t('OPENAPI_SYNC.COLLECTION_STATUS.ACTIONS.RESET_ENDPOINT_MESSAGE', {
+        defaultValue: 'Are you sure you want to reset "{{endpoint}}" to match the spec? Your local changes will be lost.',
+        endpoint: `${endpoint.method} ${endpoint.path}`
+      }),
       endpoint
     });
   };
@@ -36,16 +41,22 @@ const useEndpointActions = (collection, collectionDrift, reloadDrift) => {
     if (!collectionDrift?.modified?.length) return;
     setPendingAction({
       type: 'reset-all-modified',
-      title: 'Reset All Modified',
-      message: `Are you sure you want to reset ${collectionDrift.modified.length} modified endpoint(s) to match the spec? Your local changes will be lost.`
+      title: t('OPENAPI_SYNC.COLLECTION_STATUS.ACTIONS.RESET_ALL_MODIFIED_TITLE', { defaultValue: 'Reset All Modified' }),
+      message: t('OPENAPI_SYNC.COLLECTION_STATUS.ACTIONS.RESET_ALL_MODIFIED_MESSAGE', {
+        defaultValue: 'Are you sure you want to reset {{count}} modified endpoint(s) to match the spec? Your local changes will be lost.',
+        count: collectionDrift.modified.length
+      })
     });
   };
 
   const handleDeleteEndpoint = (endpoint) => {
     setPendingAction({
       type: 'delete-endpoint',
-      title: 'Delete Endpoint',
-      message: `Are you sure you want to delete "${endpoint.method} ${endpoint.path}"? This action cannot be undone.`,
+      title: t('OPENAPI_SYNC.COLLECTION_STATUS.ACTIONS.DELETE_ENDPOINT_TITLE', { defaultValue: 'Delete Endpoint' }),
+      message: t('OPENAPI_SYNC.COLLECTION_STATUS.ACTIONS.DELETE_ENDPOINT_MESSAGE', {
+        defaultValue: 'Are you sure you want to delete "{{endpoint}}"? This action cannot be undone.',
+        endpoint: `${endpoint.method} ${endpoint.path}`
+      }),
       endpoint
     });
   };
@@ -54,8 +65,11 @@ const useEndpointActions = (collection, collectionDrift, reloadDrift) => {
     if (!collectionDrift?.localOnly?.length) return;
     setPendingAction({
       type: 'delete-all-local',
-      title: 'Delete All Local Endpoints',
-      message: `Are you sure you want to delete ${collectionDrift.localOnly.length} local-only endpoint(s)? This action cannot be undone.`
+      title: t('OPENAPI_SYNC.COLLECTION_STATUS.ACTIONS.DELETE_ALL_LOCAL_TITLE', { defaultValue: 'Delete All Local Endpoints' }),
+      message: t('OPENAPI_SYNC.COLLECTION_STATUS.ACTIONS.DELETE_ALL_LOCAL_MESSAGE', {
+        defaultValue: 'Are you sure you want to delete {{count}} local-only endpoint(s)? This action cannot be undone.',
+        count: collectionDrift.localOnly.length
+      })
     });
   };
 
@@ -66,16 +80,24 @@ const useEndpointActions = (collection, collectionDrift, reloadDrift) => {
 
     setPendingAction({
       type: 'revert-all',
-      title: 'Revert All Changes',
-      message: `Are you sure you want to revert all changes? This will reset ${modifiedCount} modified, restore ${missingCount} missing, and delete ${localOnlyCount} local-only endpoint(s).`
+      title: t('OPENAPI_SYNC.COLLECTION_STATUS.ACTIONS.REVERT_ALL_TITLE', { defaultValue: 'Revert All Changes' }),
+      message: t('OPENAPI_SYNC.COLLECTION_STATUS.ACTIONS.REVERT_ALL_MESSAGE', {
+        defaultValue: 'Are you sure you want to revert all changes? This will reset {{modifiedCount}} modified, restore {{missingCount}} missing, and delete {{localOnlyCount}} local-only endpoint(s).',
+        modifiedCount,
+        missingCount,
+        localOnlyCount
+      })
     });
   };
 
   const handleAddMissingEndpoint = (endpoint) => {
     setPendingAction({
       type: 'restore-endpoint',
-      title: 'Restore Endpoint',
-      message: `Are you sure you want to restore "${endpoint.method} ${endpoint.path}" to your collection?`,
+      title: t('OPENAPI_SYNC.COLLECTION_STATUS.ACTIONS.RESTORE_ENDPOINT_TITLE', { defaultValue: 'Restore Endpoint' }),
+      message: t('OPENAPI_SYNC.COLLECTION_STATUS.ACTIONS.RESTORE_ENDPOINT_MESSAGE', {
+        defaultValue: 'Are you sure you want to restore "{{endpoint}}" to your collection?',
+        endpoint: `${endpoint.method} ${endpoint.path}`
+      }),
       endpoint
     });
   };
@@ -84,8 +106,11 @@ const useEndpointActions = (collection, collectionDrift, reloadDrift) => {
     if (!collectionDrift?.missing?.length) return;
     setPendingAction({
       type: 'restore-all-missing',
-      title: 'Restore All Missing',
-      message: `Are you sure you want to restore ${collectionDrift.missing.length} missing endpoint(s) to your collection?`
+      title: t('OPENAPI_SYNC.COLLECTION_STATUS.ACTIONS.RESTORE_ALL_MISSING_TITLE', { defaultValue: 'Restore All Missing' }),
+      message: t('OPENAPI_SYNC.COLLECTION_STATUS.ACTIONS.RESTORE_ALL_MISSING_MESSAGE', {
+        defaultValue: 'Are you sure you want to restore {{count}} missing endpoint(s) to your collection?',
+        count: collectionDrift.missing.length
+      })
     });
   };
 
@@ -100,26 +125,38 @@ const useEndpointActions = (collection, collectionDrift, reloadDrift) => {
       case 'reset-endpoint':
         return executeEndpointAction(
           ['renderer:reset-endpoints-to-spec', { collectionPath: collection.pathname, endpoints: [endpoint] }],
-          `Reset ${endpoint.method} ${endpoint.path} to spec`,
-          'Failed to reset endpoint'
+          t('OPENAPI_SYNC.COLLECTION_STATUS.TOAST.RESET_ENDPOINT_SUCCESS', {
+            defaultValue: 'Reset {{endpoint}} to spec',
+            endpoint: `${endpoint.method} ${endpoint.path}`
+          }),
+          t('OPENAPI_SYNC.COLLECTION_STATUS.ERRORS.RESET_ENDPOINT_FAILED', { defaultValue: 'Failed to reset endpoint' })
         );
       case 'reset-all-modified':
         return executeEndpointAction(
           ['renderer:reset-endpoints-to-spec', { collectionPath: collection.pathname, endpoints: collectionDrift.modified }],
-          `Reset ${collectionDrift.modified.length} endpoints to spec`,
-          'Failed to reset endpoints'
+          t('OPENAPI_SYNC.COLLECTION_STATUS.TOAST.RESET_ENDPOINTS_SUCCESS', {
+            defaultValue: 'Reset {{count}} endpoints to spec',
+            count: collectionDrift.modified.length
+          }),
+          t('OPENAPI_SYNC.COLLECTION_STATUS.ERRORS.RESET_ENDPOINTS_FAILED', { defaultValue: 'Failed to reset endpoints' })
         );
       case 'delete-endpoint':
         return executeEndpointAction(
           ['renderer:delete-endpoints', { collectionPath: collection.pathname, collectionUid: collection.uid, endpoints: [endpoint] }],
-          `Deleted ${endpoint.method} ${endpoint.path}`,
-          'Failed to delete endpoint'
+          t('OPENAPI_SYNC.COLLECTION_STATUS.TOAST.DELETE_ENDPOINT_SUCCESS', {
+            defaultValue: 'Deleted {{endpoint}}',
+            endpoint: `${endpoint.method} ${endpoint.path}`
+          }),
+          t('OPENAPI_SYNC.COLLECTION_STATUS.ERRORS.DELETE_ENDPOINT_FAILED', { defaultValue: 'Failed to delete endpoint' })
         );
       case 'delete-all-local':
         return executeEndpointAction(
           ['renderer:delete-endpoints', { collectionPath: collection.pathname, collectionUid: collection.uid, endpoints: collectionDrift.localOnly }],
-          `Deleted ${collectionDrift.localOnly.length} local-only endpoints`,
-          'Failed to delete endpoints'
+          t('OPENAPI_SYNC.COLLECTION_STATUS.TOAST.DELETE_LOCAL_ONLY_SUCCESS', {
+            defaultValue: 'Deleted {{count}} local-only endpoints',
+            count: collectionDrift.localOnly.length
+          }),
+          t('OPENAPI_SYNC.COLLECTION_STATUS.ERRORS.DELETE_ENDPOINTS_FAILED', { defaultValue: 'Failed to delete endpoints' })
         );
       case 'revert-all': {
         const calls = [];
@@ -132,19 +169,29 @@ const useEndpointActions = (collection, collectionDrift, reloadDrift) => {
         if (collectionDrift?.localOnly?.length > 0) {
           calls.push(['renderer:delete-endpoints', { collectionPath: collection.pathname, collectionUid: collection.uid, endpoints: collectionDrift.localOnly }]);
         }
-        return executeEndpointAction(calls, 'All changes discarded successfully', 'Failed to discard changes');
+        return executeEndpointAction(
+          calls,
+          t('OPENAPI_SYNC.COLLECTION_STATUS.TOAST.REVERT_ALL_SUCCESS', { defaultValue: 'All changes discarded successfully' }),
+          t('OPENAPI_SYNC.COLLECTION_STATUS.ERRORS.REVERT_ALL_FAILED', { defaultValue: 'Failed to discard changes' })
+        );
       }
       case 'restore-endpoint':
         return executeEndpointAction(
           ['renderer:add-missing-endpoints', { collectionPath: collection.pathname, endpoints: [endpoint] }],
-          `Added ${endpoint.method} ${endpoint.path} to collection`,
-          'Failed to add endpoint'
+          t('OPENAPI_SYNC.COLLECTION_STATUS.TOAST.RESTORE_ENDPOINT_SUCCESS', {
+            defaultValue: 'Added {{endpoint}} to collection',
+            endpoint: `${endpoint.method} ${endpoint.path}`
+          }),
+          t('OPENAPI_SYNC.COLLECTION_STATUS.ERRORS.RESTORE_ENDPOINT_FAILED', { defaultValue: 'Failed to add endpoint' })
         );
       case 'restore-all-missing':
         return executeEndpointAction(
           ['renderer:add-missing-endpoints', { collectionPath: collection.pathname, endpoints: collectionDrift.missing }],
-          `Added ${collectionDrift.missing.length} endpoints to collection`,
-          'Failed to add endpoints'
+          t('OPENAPI_SYNC.COLLECTION_STATUS.TOAST.RESTORE_ENDPOINTS_SUCCESS', {
+            defaultValue: 'Added {{count}} endpoints to collection',
+            count: collectionDrift.missing.length
+          }),
+          t('OPENAPI_SYNC.COLLECTION_STATUS.ERRORS.RESTORE_ENDPOINTS_FAILED', { defaultValue: 'Failed to add endpoints' })
         );
     }
   };

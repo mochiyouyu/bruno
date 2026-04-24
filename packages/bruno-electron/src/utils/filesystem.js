@@ -134,7 +134,7 @@ const createDirectory = async (dir) => {
     throw new Error(`directory: ${dir} already exists`);
   }
 
-  return fs.mkdirSync(dir);
+  return fs.mkdirSync(dir, { recursive: true });
 };
 
 const browseDirectory = async (win) => {

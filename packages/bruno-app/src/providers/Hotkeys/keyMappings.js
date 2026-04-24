@@ -1,79 +1,87 @@
 export const KEY_BINDING_SECTIONS = [
   {
     heading: 'Tabs',
+    headingKey: 'KEYBINDINGS.SECTIONS.TABS',
     bindings: {
-      closeTab: { mac: 'command+bind+w', windows: 'ctrl+bind+w', name: 'Close Tab' }, // D
-      closeAllTabs: { mac: 'command+bind+shift+bind+w', windows: 'ctrl+bind+shift+bind+w', name: 'Close All Tabs' }, // D
-      save: { mac: 'command+bind+s', windows: 'ctrl+bind+s', name: 'Save' }, // D
-      saveAllTabs: { mac: 'command+bind+shift+bind+s', windows: 'ctrl+bind+shift+bind+s', name: 'Save All Tabs' }, // D
-      reopenLastClosedTab: { mac: 'command+bind+shift+bind+t', windows: 'ctrl+bind+shift+bind+t', name: 'Reopen Last Closed Tab' }, // D
-      switchToTabAtPosition: { mac: 'command+bind+1+bind+command+bind+8', windows: 'ctrl+bind+1+bind+ctrl+bind+8', name: 'Switch to Tab at Position', readOnly: true, displayValue: { mac: 'command+bind+1 - command+bind+8', windows: 'ctrl+bind+1 - ctrl+bind+8' } }, // D
-      switchToLastTab: { mac: 'command+bind+9', windows: 'ctrl+bind+9', name: 'Switch to Last Tab' }, // D
-      switchToPreviousTab: { mac: 'shift+bind+command+bind+[', windows: 'shift+bind+ctrl+bind+[', name: 'Switch to Previous Tab' }, // D
-      switchToNextTab: { mac: 'shift+bind+command+bind+]', windows: 'shift+bind+ctrl+bind+]', name: 'Switch to Next Tab' },
-      moveTabLeft: { mac: 'command+bind+[', windows: 'ctrl+bind+[', name: 'Move Tab Left' }, // D
-      moveTabRight: { mac: 'command+bind+]', windows: 'ctrl+bind+]', name: 'Move Tab Right' }, // D
-      switchToTab1: { mac: 'command+bind+1', windows: 'ctrl+bind+1', name: 'Switch to Tab at Position', readOnly: true, hidden: true },
-      switchToTab2: { mac: 'command+bind+2', windows: 'ctrl+bind+2', name: 'Switch to Tab at Position', readOnly: true, hidden: true },
-      switchToTab3: { mac: 'command+bind+3', windows: 'ctrl+bind+3', name: 'Switch to Tab at Position', readOnly: true, hidden: true },
-      switchToTab4: { mac: 'command+bind+4', windows: 'ctrl+bind+4', name: 'Switch to Tab at Position', readOnly: true, hidden: true },
-      switchToTab5: { mac: 'command+bind+5', windows: 'ctrl+bind+5', name: 'Switch to Tab at Position', readOnly: true, hidden: true },
-      switchToTab6: { mac: 'command+bind+6', windows: 'ctrl+bind+6', name: 'Switch to Tab at Position', readOnly: true, hidden: true },
-      switchToTab7: { mac: 'command+bind+7', windows: 'ctrl+bind+7', name: 'Switch to Tab at Position', readOnly: true, hidden: true },
-      switchToTab8: { mac: 'command+bind+8', windows: 'ctrl+bind+8', name: 'Switch to Tab at Position', readOnly: true, hidden: true }
+      closeTab: { mac: 'command+bind+w', windows: 'ctrl+bind+w', name: 'Close Tab', nameKey: 'KEYBINDINGS.ACTIONS.CLOSE_TAB' }, // D
+      closeAllTabs: { mac: 'command+bind+shift+bind+w', windows: 'ctrl+bind+shift+bind+w', name: 'Close All Tabs', nameKey: 'KEYBINDINGS.ACTIONS.CLOSE_ALL_TABS' }, // D
+      save: { mac: 'command+bind+s', windows: 'ctrl+bind+s', name: 'Save', nameKey: 'KEYBINDINGS.ACTIONS.SAVE' }, // D
+      saveAllTabs: { mac: 'command+bind+shift+bind+s', windows: 'ctrl+bind+shift+bind+s', name: 'Save All Tabs', nameKey: 'KEYBINDINGS.ACTIONS.SAVE_ALL_TABS' }, // D
+      reopenLastClosedTab: { mac: 'command+bind+shift+bind+t', windows: 'ctrl+bind+shift+bind+t', name: 'Reopen Last Closed Tab', nameKey: 'KEYBINDINGS.ACTIONS.REOPEN_LAST_CLOSED_TAB' }, // D
+      switchToTabAtPosition: { mac: 'command+bind+1+bind+command+bind+8', windows: 'ctrl+bind+1+bind+ctrl+bind+8', name: 'Switch to Tab at Position', nameKey: 'KEYBINDINGS.ACTIONS.SWITCH_TO_TAB_AT_POSITION', readOnly: true, displayValue: { mac: 'command+bind+1 - command+bind+8', windows: 'ctrl+bind+1 - ctrl+bind+8' } }, // D
+      switchToLastTab: { mac: 'command+bind+9', windows: 'ctrl+bind+9', name: 'Switch to Last Tab', nameKey: 'KEYBINDINGS.ACTIONS.SWITCH_TO_LAST_TAB' }, // D
+      switchToPreviousTab: { mac: 'shift+bind+command+bind+[', windows: 'shift+bind+ctrl+bind+[', name: 'Switch to Previous Tab', nameKey: 'KEYBINDINGS.ACTIONS.SWITCH_TO_PREVIOUS_TAB' }, // D
+      switchToNextTab: { mac: 'shift+bind+command+bind+]', windows: 'shift+bind+ctrl+bind+]', name: 'Switch to Next Tab', nameKey: 'KEYBINDINGS.ACTIONS.SWITCH_TO_NEXT_TAB' },
+      moveTabLeft: { mac: 'command+bind+[', windows: 'ctrl+bind+[', name: 'Move Tab Left', nameKey: 'KEYBINDINGS.ACTIONS.MOVE_TAB_LEFT' }, // D
+      moveTabRight: { mac: 'command+bind+]', windows: 'ctrl+bind+]', name: 'Move Tab Right', nameKey: 'KEYBINDINGS.ACTIONS.MOVE_TAB_RIGHT' }, // D
+      switchToTab1: { mac: 'command+bind+1', windows: 'ctrl+bind+1', name: 'Switch to Tab at Position', nameKey: 'KEYBINDINGS.ACTIONS.SWITCH_TO_TAB_AT_POSITION', readOnly: true, hidden: true },
+      switchToTab2: { mac: 'command+bind+2', windows: 'ctrl+bind+2', name: 'Switch to Tab at Position', nameKey: 'KEYBINDINGS.ACTIONS.SWITCH_TO_TAB_AT_POSITION', readOnly: true, hidden: true },
+      switchToTab3: { mac: 'command+bind+3', windows: 'ctrl+bind+3', name: 'Switch to Tab at Position', nameKey: 'KEYBINDINGS.ACTIONS.SWITCH_TO_TAB_AT_POSITION', readOnly: true, hidden: true },
+      switchToTab4: { mac: 'command+bind+4', windows: 'ctrl+bind+4', name: 'Switch to Tab at Position', nameKey: 'KEYBINDINGS.ACTIONS.SWITCH_TO_TAB_AT_POSITION', readOnly: true, hidden: true },
+      switchToTab5: { mac: 'command+bind+5', windows: 'ctrl+bind+5', name: 'Switch to Tab at Position', nameKey: 'KEYBINDINGS.ACTIONS.SWITCH_TO_TAB_AT_POSITION', readOnly: true, hidden: true },
+      switchToTab6: { mac: 'command+bind+6', windows: 'ctrl+bind+6', name: 'Switch to Tab at Position', nameKey: 'KEYBINDINGS.ACTIONS.SWITCH_TO_TAB_AT_POSITION', readOnly: true, hidden: true },
+      switchToTab7: { mac: 'command+bind+7', windows: 'ctrl+bind+7', name: 'Switch to Tab at Position', nameKey: 'KEYBINDINGS.ACTIONS.SWITCH_TO_TAB_AT_POSITION', readOnly: true, hidden: true },
+      switchToTab8: { mac: 'command+bind+8', windows: 'ctrl+bind+8', name: 'Switch to Tab at Position', nameKey: 'KEYBINDINGS.ACTIONS.SWITCH_TO_TAB_AT_POSITION', readOnly: true, hidden: true }
     }
   },
   {
     heading: 'Sidebar',
+    headingKey: 'KEYBINDINGS.SECTIONS.SIDEBAR',
     bindings: {
-      sidebarSearch: { mac: 'command+bind+f', windows: 'ctrl+bind+f', name: 'Search Sidebar' }, // D
-      copyItem: { mac: 'command+bind+c', windows: 'ctrl+bind+c', name: 'Copy Item' }, // D
-      pasteItem: { mac: 'command+bind+v', windows: 'ctrl+bind+v', name: 'Paste Item' }, // D
-      cloneItem: { mac: 'command+bind+d', windows: 'ctrl+bind+d', name: 'Clone Item' }, // D
-      renameItem: { mac: 'command+bind+r', windows: 'ctrl+bind+r', name: 'Rename Item' }, // D
-      collapseSidebar: { mac: 'command+bind+\\', windows: 'ctrl+bind+\\', name: 'Collapse Sidebar' } // D
+      sidebarSearch: { mac: 'command+bind+f', windows: 'ctrl+bind+f', name: 'Search Sidebar', nameKey: 'KEYBINDINGS.ACTIONS.SEARCH_SIDEBAR' }, // D
+      copyItem: { mac: 'command+bind+c', windows: 'ctrl+bind+c', name: 'Copy Item', nameKey: 'KEYBINDINGS.ACTIONS.COPY_ITEM' }, // D
+      pasteItem: { mac: 'command+bind+v', windows: 'ctrl+bind+v', name: 'Paste Item', nameKey: 'KEYBINDINGS.ACTIONS.PASTE_ITEM' }, // D
+      cloneItem: { mac: 'command+bind+d', windows: 'ctrl+bind+d', name: 'Clone Item', nameKey: 'KEYBINDINGS.ACTIONS.CLONE_ITEM' }, // D
+      renameItem: { mac: 'command+bind+r', windows: 'ctrl+bind+r', name: 'Rename Item', nameKey: 'KEYBINDINGS.ACTIONS.RENAME_ITEM' }, // D
+      collapseSidebar: { mac: 'command+bind+\\', windows: 'ctrl+bind+\\', name: 'Collapse Sidebar', nameKey: 'KEYBINDINGS.ACTIONS.COLLAPSE_SIDEBAR' } // D
     }
   },
   {
     heading: 'Requests',
+    headingKey: 'KEYBINDINGS.SECTIONS.REQUESTS',
     bindings: {
-      sendRequest: { mac: 'command+bind+enter', windows: 'ctrl+bind+enter', name: 'Send Request' }, // D
-      changeLayout: { mac: 'command+bind+j', windows: 'ctrl+bind+j', name: 'Change Orientation' } // D
+      sendRequest: { mac: 'command+bind+enter', windows: 'ctrl+bind+enter', name: 'Send Request', nameKey: 'KEYBINDINGS.ACTIONS.SEND_REQUEST' }, // D
+      changeLayout: { mac: 'command+bind+j', windows: 'ctrl+bind+j', name: 'Change Orientation', nameKey: 'KEYBINDINGS.ACTIONS.CHANGE_ORIENTATION' } // D
     }
   },
   {
     heading: 'Collections & Environment',
+    headingKey: 'KEYBINDINGS.SECTIONS.COLLECTIONS_AND_ENVIRONMENT',
     bindings: {
-      importCollection: { mac: 'command+bind+o', windows: 'ctrl+bind+o', name: 'Import Collection' }, // D
-      editEnvironment: { mac: 'command+bind+e', windows: 'ctrl+bind+e', name: 'Edit Environment' }, // D
-      newRequest: { mac: 'command+bind+n', windows: 'ctrl+bind+n', name: 'New Request' } // D
+      importCollection: { mac: 'command+bind+o', windows: 'ctrl+bind+o', name: 'Import Collection', nameKey: 'KEYBINDINGS.ACTIONS.IMPORT_COLLECTION' }, // D
+      editEnvironment: { mac: 'command+bind+e', windows: 'ctrl+bind+e', name: 'Edit Environment', nameKey: 'KEYBINDINGS.ACTIONS.EDIT_ENVIRONMENT' }, // D
+      newRequest: { mac: 'command+bind+n', windows: 'ctrl+bind+n', name: 'New Request', nameKey: 'KEYBINDINGS.ACTIONS.NEW_REQUEST' } // D
     }
   },
   {
     heading: 'Search',
+    headingKey: 'KEYBINDINGS.SECTIONS.SEARCH',
     bindings: {
-      globalSearch: { mac: 'command+bind+k', windows: 'ctrl+bind+k', name: 'Global Search' } // D
+      globalSearch: { mac: 'command+bind+k', windows: 'ctrl+bind+k', name: 'Global Search', nameKey: 'KEYBINDINGS.ACTIONS.GLOBAL_SEARCH' } // D
     }
   },
   {
     heading: 'View',
+    headingKey: 'KEYBINDINGS.SECTIONS.VIEW',
     bindings: {
-      zoomIn: { mac: 'command+bind+=', windows: 'ctrl+bind+=', name: 'Zoom In' },
-      zoomOut: { mac: 'command+bind+-', windows: 'ctrl+bind+-', name: 'Zoom Out' },
-      resetZoom: { mac: 'command+bind+0', windows: 'ctrl+bind+0', name: 'Reset Zoom' }
+      zoomIn: { mac: 'command+bind+=', windows: 'ctrl+bind+=', name: 'Zoom In', nameKey: 'KEYBINDINGS.ACTIONS.ZOOM_IN' },
+      zoomOut: { mac: 'command+bind+-', windows: 'ctrl+bind+-', name: 'Zoom Out', nameKey: 'KEYBINDINGS.ACTIONS.ZOOM_OUT' },
+      resetZoom: { mac: 'command+bind+0', windows: 'ctrl+bind+0', name: 'Reset Zoom', nameKey: 'KEYBINDINGS.ACTIONS.RESET_ZOOM' }
     }
   },
   {
     heading: 'Developer Tool',
+    headingKey: 'KEYBINDINGS.SECTIONS.DEVELOPER_TOOL',
     bindings: {
-      openTerminal: { mac: 'command+bind+t', windows: 'ctrl+bind+t', name: 'Open in Terminal' } // D
+      openTerminal: { mac: 'command+bind+t', windows: 'ctrl+bind+t', name: 'Open in Terminal', nameKey: 'KEYBINDINGS.ACTIONS.OPEN_IN_TERMINAL' } // D
     }
   },
   {
     heading: 'Others',
+    headingKey: 'KEYBINDINGS.SECTIONS.OTHERS',
     bindings: {
-      openPreferences: { mac: 'command+bind+,', windows: 'ctrl+bind+,', name: 'Open Preferences' }, // D
-      closeBruno: { mac: 'command+bind+q', windows: 'ctrl+bind+shift+bind+q', name: 'Close Bruno' } // D
+      openPreferences: { mac: 'command+bind+,', windows: 'ctrl+bind+,', name: 'Open Preferences', nameKey: 'KEYBINDINGS.ACTIONS.OPEN_PREFERENCES' }, // D
+      closeBruno: { mac: 'command+bind+q', windows: 'ctrl+bind+shift+bind+q', name: 'Close Bruno', nameKey: 'KEYBINDINGS.ACTIONS.CLOSE_BRUNO' } // D
     }
   }
 ];

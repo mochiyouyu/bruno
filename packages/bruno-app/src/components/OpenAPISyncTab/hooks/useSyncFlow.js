@@ -3,12 +3,14 @@ import { useDispatch } from 'react-redux';
 import toast from 'react-hot-toast';
 import { clearCollectionUpdate } from 'providers/ReduxStore/slices/openapi-sync';
 import { formatIpcError } from 'utils/common/error';
+import { useTranslation } from 'react-i18next';
 
 const useSyncFlow = ({
   collection, specDrift, remoteDrift, collectionDrift,
   setError, checkForUpdates
 }) => {
   const dispatch = useDispatch();
+  const { t } = useTranslation();
 
   const [pendingSyncMode, setPendingSyncMode] = useState(null);
   const [showConfirmModal, setShowConfirmModal] = useState(false);
@@ -78,16 +80,18 @@ const useSyncFlow = ({
 
       dispatch(clearCollectionUpdate({ collectionUid: collection.uid }));
       toast.success(
-        mode === 'spec-only' ? 'Spec updated successfully'
-          : mode === 'reset' ? 'Collection reset to spec successfully'
-            : 'Collection synced successfully'
+        mode === 'spec-only'
+          ? t('OPENAPI_SYNC.REVIEW.TOAST.SPEC_UPDATED', { defaultValue: 'Spec updated successfully' })
+          : mode === 'reset'
+              ? t('OPENAPI_SYNC.REVIEW.TOAST.COLLECTION_RESET', { defaultValue: 'Collection reset to spec successfully' })
+              : t('OPENAPI_SYNC.REVIEW.TOAST.COLLECTION_SYNCED', { defaultValue: 'Collection synced successfully' })
       );
 
       // Re-check to show "up to date" state
       await checkForUpdates();
     } catch (err) {
       console.error('Error syncing collection:', err);
-      setError(formatIpcError(err) || 'Failed to sync collection');
+      setError(formatIpcError(err) || t('OPENAPI_SYNC.REVIEW.ERRORS.SYNC_FAILED', { defaultValue: 'Failed to sync collection' }));
     } finally {
       setIsSyncing(false);
     }
@@ -142,17 +146,17 @@ const useSyncFlow = ({
     const groups = [];
     const actuallyAdded = (remoteDrift.missing || []).filter((ep) => specAddedIds.has(ep.id));
     if (actuallyAdded.length > 0) {
-      groups.push({ label: 'New endpoints to add', type: 'add', endpoints: actuallyAdded });
+      groups.push({ label: t('OPENAPI_SYNC.REVIEW.CONFIRM.NEW_ENDPOINTS_TO_ADD', { defaultValue: 'New endpoints to add' }), type: 'add', endpoints: actuallyAdded });
     }
     if (remoteDrift.modified?.length > 0) {
-      groups.push({ label: 'Endpoints to update', type: 'update', endpoints: remoteDrift.modified });
+      groups.push({ label: t('OPENAPI_SYNC.REVIEW.CONFIRM.ENDPOINTS_TO_UPDATE', { defaultValue: 'Endpoints to update' }), type: 'update', endpoints: remoteDrift.modified });
     }
     const actuallyRemoved = (remoteDrift.localOnly || []).filter((ep) => specRemovedIds.has(ep.id));
     if (actuallyRemoved.length > 0) {
-      groups.push({ label: 'Endpoints to delete', type: 'remove', endpoints: actuallyRemoved });
+      groups.push({ label: t('OPENAPI_SYNC.REVIEW.CONFIRM.ENDPOINTS_TO_DELETE', { defaultValue: 'Endpoints to delete' }), type: 'remove', endpoints: actuallyRemoved });
     }
     return groups;
-  }, [remoteDrift, specAddedIds, specRemovedIds]);
+  }, [remoteDrift, specAddedIds, specRemovedIds, t]);
 
   return {
     isSyncing, showConfirmModal, confirmGroups,

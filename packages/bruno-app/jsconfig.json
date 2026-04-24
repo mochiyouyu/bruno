@@ -5,6 +5,10 @@
     "allowSyntheticDefaultImports": false,
     "baseUrl": "./",
     "paths": {
+      "@usebruno/common": ["src/module-proxies/usebruno-common.js"],
+      "@usebruno/common/utils": ["src/module-proxies/usebruno-common-utils.js"],
+      "@usebruno/converters": ["src/module-proxies/usebruno-converters.js"],
+      "@usebruno/graphql-docs": ["src/module-proxies/usebruno-graphql-docs.js"],
       "assets/*": ["src/assets/*"],
       "ui/*": ["src/ui/*"],
       "components/*": ["src/components/*"],

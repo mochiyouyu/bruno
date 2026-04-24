@@ -7,12 +7,14 @@ import { interpolate } from '@usebruno/common';
 import { fetchOauth2Credentials, clearOauth2Cache, refreshOauth2Credentials, cancelOauth2AuthorizationRequest, isOauth2AuthorizationRequestInProgress } from 'providers/ReduxStore/slices/collections/actions';
 import { getAllVariables } from 'utils/collections/index';
 import Button from 'ui/Button';
+import { useTranslation } from 'react-i18next';
 
 const Oauth2ActionButtons = ({ item, request, collection, url: accessTokenUrl, credentialsId }) => {
   const { uid: collectionUid } = collection;
 
   const dispatch = useDispatch();
   const preferences = useSelector((state) => state.app.preferences);
+  const { t } = useTranslation();
   const [fetchingToken, toggleFetchingToken] = useState(false);
   const [refreshingToken, toggleRefreshingToken] = useState(false);
   const [fetchingAuthorizationCode, toggleFetchingAuthorizationCode] = useState(false);
@@ -56,13 +58,13 @@ const Oauth2ActionButtons = ({ item, request, collection, url: accessTokenUrl, c
 
       // Check if the result contains error or if access_token is missing
       if (!result || !result.access_token) {
-        const errorMessage = result?.error || 'No access token received from authorization server';
+        const errorMessage = result?.error || t('OAUTH.OAUTH2.ACTIONS.NO_ACCESS_TOKEN', { defaultValue: 'No access token received from authorization server' });
         console.error(errorMessage);
         toast.error(errorMessage);
         return;
       }
 
-      toast.success('Token fetched successfully!');
+      toast.success(t('OAUTH.OAUTH2.ACTIONS.TOKEN_FETCHED', { defaultValue: 'Token fetched successfully!' }));
     } catch (error) {
       console.error('could not fetch the token!');
       console.error(error);
@@ -70,7 +72,7 @@ const Oauth2ActionButtons = ({ item, request, collection, url: accessTokenUrl, c
       if (error?.message && error.message.includes('cancelled by user')) {
         return;
       }
-      toast.error(error?.message || 'An error occurred while fetching token!');
+      toast.error(error?.message || t('OAUTH.OAUTH2.ACTIONS.FETCH_TOKEN_FAILED', { defaultValue: 'An error occurred while fetching token!' }));
     } finally {
       toggleFetchingToken(false);
       toggleFetchingAuthorizationCode(false);
@@ -94,24 +96,24 @@ const Oauth2ActionButtons = ({ item, request, collection, url: accessTokenUrl, c
 
       // Check if the result contains error or if access_token is missing
       if (!result || !result.access_token) {
-        const errorMessage = result?.error || 'No access token received from authorization server';
+        const errorMessage = result?.error || t('OAUTH.OAUTH2.ACTIONS.NO_ACCESS_TOKEN', { defaultValue: 'No access token received from authorization server' });
         console.error(errorMessage);
         toast.error(errorMessage);
         return;
       }
 
-      toast.success('Token refreshed successfully!');
+      toast.success(t('OAUTH.OAUTH2.ACTIONS.TOKEN_REFRESHED', { defaultValue: 'Token refreshed successfully!' }));
     } catch (error) {
       console.error(error);
       toggleRefreshingToken(false);
-      toast.error(error?.message || 'An error occurred while refreshing token!');
+      toast.error(error?.message || t('OAUTH.OAUTH2.ACTIONS.REFRESH_TOKEN_FAILED', { defaultValue: 'An error occurred while refreshing token!' }));
     }
   };
 
   const handleClearCache = (e) => {
     dispatch(clearOauth2Cache({ collectionUid: collection?.uid, url: interpolatedAccessTokenUrl, credentialsId }))
       .then(() => {
-        toast.success('Cleared cache successfully');
+        toast.success(t('OAUTH.OAUTH2.ACTIONS.CACHE_CLEARED', { defaultValue: 'Cleared cache successfully' }));
       })
       .catch((err) => {
         toast.error(err.message);
@@ -122,13 +124,13 @@ const Oauth2ActionButtons = ({ item, request, collection, url: accessTokenUrl, c
     try {
       const result = await dispatch(cancelOauth2AuthorizationRequest());
       if (result.success && result.cancelled) {
-        toast.error('Authorization cancelled');
+        toast.error(t('OAUTH.OAUTH2.ACTIONS.AUTHORIZATION_CANCELLED', { defaultValue: 'Authorization cancelled' }));
         toggleFetchingToken(false);
         toggleFetchingAuthorizationCode(false);
       }
     } catch (err) {
       console.error('Error cancelling authorization:', err);
-      toast.error('Failed to cancel authorization');
+      toast.error(t('OAUTH.OAUTH2.ACTIONS.CANCEL_AUTHORIZATION_FAILED', { defaultValue: 'Failed to cancel authorization' }));
     }
   };
 
@@ -141,7 +143,7 @@ const Oauth2ActionButtons = ({ item, request, collection, url: accessTokenUrl, c
         disabled={fetchingToken || refreshingToken}
         loading={fetchingToken}
       >
-        Get Access Token
+        {t('OAUTH.OAUTH2.ACTIONS.GET_ACCESS_TOKEN', { defaultValue: 'Get Access Token' })}
       </Button>
       {creds?.refresh_token
         ? (
@@ -152,7 +154,7 @@ const Oauth2ActionButtons = ({ item, request, collection, url: accessTokenUrl, c
               disabled={fetchingToken || refreshingToken}
               loading={refreshingToken}
             >
-              Refresh Token
+              {t('OAUTH.OAUTH2.ACTIONS.REFRESH_TOKEN', { defaultValue: 'Refresh Token' })}
             </Button>
           )
         : null}
@@ -165,7 +167,7 @@ const Oauth2ActionButtons = ({ item, request, collection, url: accessTokenUrl, c
               icon={<IconX size={16} />}
               iconPosition="left"
             >
-              Cancel Authorization
+              {t('OAUTH.OAUTH2.ACTIONS.CANCEL_AUTHORIZATION', { defaultValue: 'Cancel Authorization' })}
             </Button>
           ) : null}
       <Button
@@ -174,7 +176,7 @@ const Oauth2ActionButtons = ({ item, request, collection, url: accessTokenUrl, c
         variant="ghost"
         onClick={handleClearCache}
       >
-        Clear Cache
+        {t('OAUTH.OAUTH2.ACTIONS.CLEAR_CACHE', { defaultValue: 'Clear Cache' })}
       </Button>
     </div>
   );

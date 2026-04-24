@@ -3,6 +3,7 @@ import SensitiveFieldWarning from 'components/SensitiveFieldWarning';
 import { useDetectSensitiveField } from 'hooks/useDetectSensitiveField';
 import get from 'lodash/get';
 import { useTheme } from 'providers/Theme';
+import { useTranslation } from 'react-i18next';
 import { useDispatch } from 'react-redux';
 import SingleLineEditor from 'components/SingleLineEditor';
 import { updateAuth } from 'providers/ReduxStore/slices/collections';
@@ -12,6 +13,7 @@ import StyledWrapper from './StyledWrapper';
 const WsseAuth = ({ item, collection, updateAuth, request, save }) => {
   const dispatch = useDispatch();
   const { storedTheme } = useTheme();
+  const { t } = useTranslation();
 
   const wsseAuth = get(request, 'auth.wsse', {});
   const { isSensitive } = useDetectSensitiveField(collection);
@@ -53,7 +55,7 @@ const WsseAuth = ({ item, collection, updateAuth, request, save }) => {
 
   return (
     <StyledWrapper className="w-full">
-      <label className="block mb-1">Username</label>
+      <label className="block mb-1">{t('REQUEST_PANE.AUTH_FORM.USERNAME', { defaultValue: 'Username' })}</label>
       <div className="single-line-editor-wrapper mb-3">
         <SingleLineEditor
           value={wsseAuth.username || ''}
@@ -67,7 +69,7 @@ const WsseAuth = ({ item, collection, updateAuth, request, save }) => {
         />
       </div>
 
-      <label className="block mb-1">Password</label>
+      <label className="block mb-1">{t('REQUEST_PANE.AUTH_FORM.PASSWORD', { defaultValue: 'Password' })}</label>
       <div className="single-line-editor-wrapper flex items-center">
         <SingleLineEditor
           value={wsseAuth.password || ''}

@@ -1,131 +1,166 @@
 const os = require('os');
 const fs = require('fs-extra');
-const util = require('util');
-const spawn = util.promisify(require('child_process').spawn);
 const path = require('path');
+const { spawn } = require('child_process');
 
-async function deleteFileIfExists(filePath) {
-  try {
-    const exists = await fs.pathExists(filePath);
-    if (exists) {
-      await fs.remove(filePath);
-      console.log(`${filePath} has been successfully deleted.`);
-    } else {
-      console.log(`${filePath} does not exist.`);
-    }
-  } catch (err) {
-    console.error(`Error while checking the existence of ${filePath}: ${err}`);
+const TARGET_TO_SCRIPT = {
+  win: 'dist:win',
+  mac: 'dist:mac',
+  linux: 'dist:linux',
+  deb: 'dist:deb',
+  rpm: 'dist:rpm',
+  snap: 'dist:snap',
+  dir: 'pack'
+};
+
+const getDefaultTarget = () => {
+  if (os.platform() === 'win32') {
+    return 'win';
   }
-}
 
-async function copyFolderIfExists(srcPath, destPath) {
-  try {
-    const exists = await fs.pathExists(srcPath);
-    if (exists) {
-      await fs.copy(srcPath, destPath);
-      console.log(`${srcPath} has been successfully copied.`);
-    } else {
-      console.log(`${srcPath} was not copied as it does not exist.`);
-    }
-  } catch (err) {
-    console.error(`Error while checking the existence of ${srcPath}: ${err}`);
+  if (os.platform() === 'darwin') {
+    return 'mac';
   }
-}
 
-async function removeSourceMapFiles(directory) {
-  try {
-    const files = await fs.readdir(directory);
-    for (const file of files) {
-      if (file.endsWith('.map')) {
-        const filePath = path.join(directory, file);
-        await fs.remove(filePath);
-        console.log(`${filePath} has been successfully deleted.`);
-      }
-    }
-  } catch (error) {
-    console.error(`Error while deleting .map files: ${error}`);
+  return 'linux';
+};
+
+const printUsage = () => {
+  console.log('Usage: node ./scripts/build-electron.js [auto|win|mac|linux|deb|rpm|snap|dir]');
+  console.log('Default target is "auto", which resolves to the current host platform.');
+};
+
+const resolveTarget = (targetArg) => {
+  if (!targetArg || targetArg === 'auto') {
+    return getDefaultTarget();
   }
-}
 
-async function execCommandWithOutput(command) {
-  return new Promise(async (resolve, reject) => {
-    const childProcess = await spawn(command, {
+  if (!TARGET_TO_SCRIPT[targetArg]) {
+    throw new Error(`Unsupported target "${targetArg}". Supported targets: auto, ${Object.keys(TARGET_TO_SCRIPT).join(', ')}`);
+  }
+
+  return targetArg;
+};
+
+const getNpmCommand = () => (process.platform === 'win32' ? 'npm.cmd' : 'npm');
+
+const runCommand = (command, args, description) => {
+  return new Promise((resolve, reject) => {
+    console.log(`\n[build-electron] ${description}`);
+    const child = spawn(command, args, {
       stdio: 'inherit',
-      shell: true
+      shell: process.platform === 'win32'
     });
-    childProcess.on('error', (error) => {
-      reject(error);
-    });
-    childProcess.on('exit', (code) => {
+
+    child.on('error', reject);
+    child.on('exit', (code) => {
       if (code === 0) {
         resolve();
-      } else {
-        reject(new Error(`Command exited with code ${code}.`));
+        return;
       }
+
+      reject(new Error(`${description} failed with exit code ${code}`));
     });
   });
+};
+
+const deletePathIfExists = async (targetPath) => {
+  if (await fs.pathExists(targetPath)) {
+    await fs.remove(targetPath);
+    console.log(`[build-electron] Removed ${targetPath}`);
+  }
+};
+
+const updateHtmlStaticPaths = async (webDir) => {
+  const files = await fs.readdir(webDir);
+
+  for (const file of files) {
+    if (!file.endsWith('.html')) {
+      continue;
+    }
+
+    const filePath = path.join(webDir, file);
+    let content = await fs.readFile(filePath, 'utf8');
+    content = content.replace(/\/static/g, './static');
+    await fs.writeFile(filePath, content);
+  }
+};
+
+const updateFontPaths = async (cssDir) => {
+  if (!await fs.pathExists(cssDir)) {
+    return;
+  }
+
+  const cssFiles = await fs.readdir(cssDir);
+  for (const file of cssFiles) {
+    if (!file.endsWith('.css')) {
+      continue;
+    }
+
+    const filePath = path.join(cssDir, file);
+    let content = await fs.readFile(filePath, 'utf8');
+    content = content.replace(/\/static\/font/g, '../../static/font');
+    await fs.writeFile(filePath, content);
+  }
+};
+
+const removeSourceMapFiles = async (directory) => {
+  if (!await fs.pathExists(directory)) {
+    return;
+  }
+
+  const files = await fs.readdir(directory, { recursive: true });
+  for (const file of files) {
+    if (typeof file !== 'string' || !file.endsWith('.map')) {
+      continue;
+    }
+
+    await fs.remove(path.join(directory, file));
+  }
+};
+
+async function prepareElectronWebAssets() {
+  const electronOutDir = 'packages/bruno-electron/out';
+  const electronWebDir = 'packages/bruno-electron/web';
+  const webBuildDir = 'packages/bruno-app/dist';
+
+  if (!await fs.pathExists(path.join(webBuildDir, 'index.html'))) {
+    throw new Error(`Frontend build output not found at "${webBuildDir}". Run "npm run build:web" first.`);
+  }
+
+  await deletePathIfExists(electronOutDir);
+  await deletePathIfExists(electronWebDir);
+  await fs.ensureDir(electronWebDir);
+  await fs.copy(webBuildDir, electronWebDir);
+
+  await updateHtmlStaticPaths(electronWebDir);
+  await updateFontPaths(path.join(electronWebDir, 'static/css'));
+  await removeSourceMapFiles(electronWebDir);
 }
 
 async function main() {
+  const cliArgs = process.argv.slice(2);
+  if (cliArgs.includes('--help') || cliArgs.includes('-h')) {
+    printUsage();
+    return;
+  }
+
   try {
-    // Remove out directory
-    await deleteFileIfExists('packages/bruno-electron/out');
+    const targetArg = cliArgs[0];
+    const target = resolveTarget(targetArg);
+    const workspaceScript = TARGET_TO_SCRIPT[target];
 
-    // Remove web directory
-    await deleteFileIfExists('packages/bruno-electron/web');
-
-    // Create a new web directory
-    await fs.ensureDir('packages/bruno-electron/web');
-    console.log('The directory has been created successfully!');
-
-    // Copy build
-    await copyFolderIfExists('packages/bruno-app/dist', 'packages/bruno-electron/web');
-
-    // Update static paths
-    const files = await fs.readdir('packages/bruno-electron/web');
-    for (const file of files) {
-      if (file.endsWith('.html')) {
-        let content = await fs.readFile(`packages/bruno-electron/web/${file}`, 'utf8');
-        content = content.replace(/\/static/g, './static');
-        await fs.writeFile(`packages/bruno-electron/web/${file}`, content);
-      }
-    }
-
-    // update font load paths
-    const cssDir = path.join('packages/bruno-electron/web/static/css');
-    try {
-      const cssFiles = await fs.readdir(cssDir);
-      for (const file of cssFiles) {
-        if (file.endsWith('.css')) {
-          const filePath = path.join(cssDir, file);
-          let content = await fs.readFile(filePath, 'utf8');
-          content = content.replace(/\/static\/font/g, '../../static/font');
-          await fs.writeFile(filePath, content);
-        }
-      }
-    } catch (error) {
-      console.error(`Error updating font paths: ${error}`);
-    }
-
-    // Remove sourcemaps
-    await removeSourceMapFiles('packages/bruno-electron/web');
-
-    // Run npm dist command
-    console.log('Building the Electron distribution');
-
-    // Determine the OS and set the appropriate argument
-    let osArg;
-    if (os.platform() === 'win32') {
-      osArg = 'win';
-    } else if (os.platform() === 'darwin') {
-      osArg = 'mac';
-    } else {
-      osArg = 'linux';
-    }
-
-    await execCommandWithOutput(`npm run dist:${osArg} --workspace=packages/bruno-electron`);
+    console.log(`[build-electron] Target: ${target}`);
+    await prepareElectronWebAssets();
+    await runCommand(
+      getNpmCommand(),
+      ['run', workspaceScript, '--workspace=packages/bruno-electron'],
+      `Packaging Electron app with ${workspaceScript}`
+    );
   } catch (error) {
-    console.error('An error occurred:', error);
+    console.error('[build-electron] Build failed');
+    console.error(error);
+    process.exit(1);
   }
 }
 

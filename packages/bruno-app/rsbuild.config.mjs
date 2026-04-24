@@ -3,7 +3,11 @@ import { pluginReact } from '@rsbuild/plugin-react';
 import { pluginBabel } from '@rsbuild/plugin-babel';
 import { pluginStyledComponents } from '@rsbuild/plugin-styled-components';
 import { pluginSass } from '@rsbuild/plugin-sass';
-import { pluginNodePolyfill } from '@rsbuild/plugin-node-polyfill'
+import { pluginNodePolyfill } from '@rsbuild/plugin-node-polyfill';
+import path from 'node:path';
+import { fileURLToPath } from 'node:url';
+
+const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
 export default defineConfig({
   plugins: [
@@ -12,13 +16,20 @@ export default defineConfig({
     pluginStyledComponents(),
     pluginSass(),
     pluginBabel({
-      include: /\.(?:js|jsx|tsx)$/,
+      include: /\.(?:js|jsx|ts|tsx)$/,
       babelLoaderOptions(opts) {
         opts.plugins?.unshift('babel-plugin-react-compiler');
       }
     })
   ],
   source: {
+    alias: {
+      '@usebruno/common': path.resolve(__dirname, 'src/module-proxies/usebruno-common.js'),
+      '@usebruno/common/utils': path.resolve(__dirname, 'src/module-proxies/usebruno-common-utils.js'),
+      '@usebruno/converters': path.resolve(__dirname, 'src/module-proxies/usebruno-converters.js'),
+      '@usebruno/graphql-docs': path.resolve(__dirname, 'src/module-proxies/usebruno-graphql-docs.js'),
+      '@usebruno/graphql-docs/dist/esm/index.css': path.resolve(__dirname, '../bruno-graphql-docs/src/index.css')
+    },
     tsconfigPath: './jsconfig.json', // Specifies the path to the JavaScript/TypeScript configuration file,
     exclude: [
       '**/test-utils/**',
@@ -31,6 +42,9 @@ export default defineConfig({
   },
   tools: {
     rspack: {
+      watchOptions: {
+        ignored: /(^|[\\/])(node_modules|\.git|\$RECYCLE\.BIN|System Volume Information)([\\/]|$)|(^|[\\/])(pagefile|swapfile|hiberfil)\.sys$/i
+      },
       module: {
         parser: {
           javascript: {

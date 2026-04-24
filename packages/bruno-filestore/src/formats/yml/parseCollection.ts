@@ -13,6 +13,105 @@ interface ParsedCollection {
   brunoConfig: Record<string, any>;
 }
 
+const sanitizeTagList = (tags: any): string[] => {
+  if (!Array.isArray(tags)) {
+    return [];
+  }
+
+  return Array.from(
+    new Set(
+      tags
+        .filter((tag: any) => typeof tag === 'string')
+        .map((tag: string) => tag.trim())
+        .filter(Boolean)
+    )
+  ).sort();
+};
+
+const sanitizeRunnerDelay = (delay: any): number | undefined => {
+  if (delay === undefined || delay === null || delay === '') {
+    return undefined;
+  }
+
+  const numericDelay = typeof delay === 'number' ? delay : Number(delay);
+  if (!Number.isFinite(numericDelay) || numericDelay < 0) {
+    return undefined;
+  }
+
+  return numericDelay;
+};
+
+const sanitizeRunnerScenarios = (scenarios: any): Record<string, any>[] => {
+  if (!Array.isArray(scenarios)) {
+    return [];
+  }
+
+  return scenarios.reduce((acc: Record<string, any>[], scenario: any) => {
+    if (!scenario || typeof scenario !== 'object') {
+      return acc;
+    }
+
+    const id = typeof scenario.id === 'string' ? scenario.id.trim() : '';
+    const name = typeof scenario.name === 'string' ? scenario.name.trim() : '';
+
+    if (!id || !name) {
+      return acc;
+    }
+
+    const delay = sanitizeRunnerDelay(scenario.delay);
+
+    acc.push({
+      id,
+      name,
+      selectedRequestItems: Array.from(new Set(
+        (Array.isArray(scenario.selectedRequestItems) ? scenario.selectedRequestItems : [])
+          .filter((uid: any) => typeof uid === 'string' && uid.trim())
+      )),
+      requestItemsOrder: Array.from(new Set(
+        (Array.isArray(scenario.requestItemsOrder) ? scenario.requestItemsOrder : [])
+          .filter((uid: any) => typeof uid === 'string' && uid.trim())
+      )),
+      ...(delay !== undefined ? { delay } : {}),
+      tags: {
+        include: sanitizeTagList(scenario.tags?.include),
+        exclude: sanitizeTagList(scenario.tags?.exclude)
+      }
+    });
+
+    return acc;
+  }, []);
+};
+
+const sanitizeRunnerSuites = (suites: any): Record<string, any>[] => {
+  if (!Array.isArray(suites)) {
+    return [];
+  }
+
+  return suites.reduce((acc: Record<string, any>[], suite: any) => {
+    if (!suite || typeof suite !== 'object') {
+      return acc;
+    }
+
+    const id = typeof suite.id === 'string' ? suite.id.trim() : '';
+    const name = typeof suite.name === 'string' ? suite.name.trim() : '';
+
+    if (!id || !name) {
+      return acc;
+    }
+
+    acc.push({
+      id,
+      name,
+      scenarioIdsOrder: Array.from(new Set(
+        (Array.isArray(suite.scenarioIdsOrder) ? suite.scenarioIdsOrder : [])
+          .filter((scenarioId: any) => typeof scenarioId === 'string' && scenarioId.trim())
+      ))
+    });
+
+    return acc;
+  }, []);
+};
+
 const parseCollection = (ymlString: string): ParsedCollection => {
   try {
     const oc: OpenCollection = parseYml(ymlString);
@@ -63,6 +162,18 @@ const parseCollection = (ymlString: string): ParsedCollection => {
         autoCheck: entry.autoCheck !== false,
         autoCheckInterval: entry.autoCheckInterval || 5
       }));
+    }
+    if (Array.isArray(brunoExtensions?.runner?.scenarios)) {
+      const runnerScenarios = sanitizeRunnerScenarios(brunoExtensions.runner.scenarios);
+      if (runnerScenarios.length > 0) {
+        brunoConfig.runnerScenarios = runnerScenarios;
+      }
+    }
+    if (Array.isArray(brunoExtensions?.runner?.suites)) {
+      const runnerSuites = sanitizeRunnerSuites(brunoExtensions.runner.suites);
+      if (runnerSuites.length > 0) {
+        brunoConfig.runnerScenarioSuites = runnerSuites;
+      }
     }
 
     // protobuf

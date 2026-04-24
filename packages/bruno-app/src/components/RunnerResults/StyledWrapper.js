@@ -144,6 +144,92 @@ const Wrapper = styled.div`
     }
   }
 
+  .scenario-controls {
+    .scenario-actions {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      flex-wrap: wrap;
+    }
+
+    .scenario-hint {
+      color: ${(props) => props.theme.colors.text.muted};
+      font-size: ${(props) => props.theme.font.size.xs};
+    }
+  }
+
+  .suite-panel {
+    border: 1px solid ${(props) => props.theme.border.border0};
+    border-radius: ${(props) => props.theme.border.radius.base};
+    background-color: ${(props) => props.theme.background.surface0};
+    overflow: hidden;
+  }
+
+  .suite-panel-empty {
+    padding: 0.75rem;
+    color: ${(props) => props.theme.colors.text.muted};
+    font-size: ${(props) => props.theme.font.size.sm};
+  }
+
+  .suite-panel-list {
+    display: flex;
+    flex-direction: column;
+  }
+
+  .suite-panel-item {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    padding: 0.65rem 0.75rem;
+    border-bottom: 1px solid ${(props) => props.theme.border.border0};
+
+    &:last-child {
+      border-bottom: none;
+    }
+
+    &.is-selected {
+      background-color: ${(props) => props.theme.background.mantle};
+    }
+  }
+
+  .suite-panel-checkbox {
+    cursor: pointer;
+
+    .checkbox {
+      width: 1rem;
+      height: 1rem;
+      border: 1px solid ${(props) => props.theme.border.border2};
+      border-radius: 3px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 0.7rem;
+      line-height: 1;
+    }
+  }
+
+  .suite-panel-content {
+    flex: 1;
+    min-width: 0;
+    cursor: pointer;
+  }
+
+  .suite-panel-name {
+    font-size: ${(props) => props.theme.font.size.sm};
+    font-weight: 500;
+  }
+
+  .suite-panel-meta {
+    color: ${(props) => props.theme.colors.text.muted};
+    font-size: ${(props) => props.theme.font.size.xs};
+  }
+
+  .suite-panel-actions {
+    display: flex;
+    align-items: center;
+    gap: 0.25rem;
+  }
+
 
   .filter-bar {
     display: flex;

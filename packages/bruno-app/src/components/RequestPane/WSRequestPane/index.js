@@ -13,9 +13,11 @@ import StyledWrapper from './StyledWrapper';
 import WSAuth from './WSAuth';
 import WSAuthMode from './WSAuth/WSAuthMode';
 import WSSettingsPane from '../WSSettingsPane/index';
+import { useTranslation } from 'react-i18next';
 
 const WSRequestPane = ({ item, collection, handleRun }) => {
   const dispatch = useDispatch();
+  const { t } = useTranslation();
   const tabs = useSelector((state) => state.tabs.tabs);
   const activeTabUid = useSelector((state) => state.tabs.activeTabUid);
 
@@ -44,31 +46,31 @@ const WSRequestPane = ({ item, collection, handleRun }) => {
     return [
       {
         key: 'body',
-        label: 'Message',
+        label: t('REQUEST_PANE.TABS.MESSAGE', { defaultValue: 'Message' }),
         indicator: null
       },
       {
         key: 'headers',
-        label: 'Headers',
+        label: t('REQUEST_PANE.TABS.HEADERS', { defaultValue: 'Headers' }),
         indicator: activeHeadersLength > 0 ? <sup className="ml-[.125rem] font-medium">{activeHeadersLength}</sup> : null
       },
       {
         key: 'auth',
-        label: 'Auth',
+        label: t('REQUEST_PANE.TABS.AUTH', { defaultValue: 'Auth' }),
         indicator: auth.mode !== 'none' ? <StatusDot type="default" /> : null
       },
       {
         key: 'settings',
-        label: 'Settings',
+        label: t('REQUEST_PANE.TABS.SETTINGS', { defaultValue: 'Settings' }),
         indicator: null
       },
       {
         key: 'docs',
-        label: 'Docs',
+        label: t('REQUEST_PANE.TABS.DOCS', { defaultValue: 'Docs' }),
         indicator: docs && docs.length > 0 ? <StatusDot type="default" /> : null
       }
     ];
-  }, [activeHeadersLength, auth.mode, docs]);
+  }, [activeHeadersLength, auth.mode, docs, t]);
 
   const tabPanel = useMemo(() => {
     switch (requestPaneTab) {
@@ -96,13 +98,13 @@ const WSRequestPane = ({ item, collection, handleRun }) => {
         return <Documentation item={item} collection={collection} />;
       }
       default: {
-        return <div className="mt-4">404 | Not found</div>;
+        return <div className="mt-4">{t('REQUEST_PANE.NOT_FOUND', { defaultValue: '404 | Not found' })}</div>;
       }
     }
-  }, [requestPaneTab, item, collection, handleRun]);
+  }, [requestPaneTab, item, collection, handleRun, t]);
 
   if (!activeTabUid || !focusedTab?.uid || !requestPaneTab) {
-    return <div className="pb-4 px-4">An error occurred!</div>;
+    return <div className="pb-4 px-4">{t('REQUEST_PANE.ERROR_OCCURRED', { defaultValue: 'An error occurred!' })}</div>;
   }
 
   const rightContent = requestPaneTab === 'auth' ? (

@@ -9,11 +9,11 @@ import NTLMAuth from './NTLMAuth';
 import OAuth1 from './OAuth1';
 import { updateAuth } from 'providers/ReduxStore/slices/collections';
 import { saveRequest } from 'providers/ReduxStore/slices/collections/actions';
+import { useTranslation } from 'react-i18next';
 import { useDispatch } from 'react-redux';
 
 import ApiKeyAuth from './ApiKeyAuth';
 import StyledWrapper from './StyledWrapper';
-import { humanizeRequestAuthMode } from 'utils/collections';
 import OAuth2 from './OAuth2/index';
 import { findItemInCollection, findParentItemInCollection } from 'utils/collections/index';
 
@@ -29,6 +29,7 @@ const getTreePathFromCollectionToItem = (collection, _item) => {
 
 const Auth = ({ item, collection }) => {
   const dispatch = useDispatch();
+  const { t } = useTranslation();
   const authMode = item.draft ? get(item, 'draft.request.auth.mode') : get(item, 'request.auth.mode');
   const requestTreePath = getTreePathFromCollectionToItem(collection, item);
 
@@ -49,7 +50,7 @@ const Auth = ({ item, collection }) => {
     const collectionAuth = get(collectionRoot, 'request.auth');
     let effectiveSource = {
       type: 'collection',
-      name: 'Collection',
+      name: t('REQUEST_PANE.AUTH_FORM.COLLECTION', { defaultValue: 'Collection' }),
       auth: collectionAuth
     };
 
@@ -72,9 +73,22 @@ const Auth = ({ item, collection }) => {
   };
 
   const getAuthView = () => {
+    const authModeLabelMap = {
+      inherit: t('REQUEST_PANE.AUTH_FORM.MODES.INHERIT', { defaultValue: 'Inherit' }),
+      awsv4: t('REQUEST_PANE.AUTH_FORM.MODES.AWS_V4', { defaultValue: 'AWS Sig V4' }),
+      basic: t('REQUEST_PANE.AUTH_FORM.MODES.BASIC', { defaultValue: 'Basic Auth' }),
+      bearer: t('REQUEST_PANE.AUTH_FORM.MODES.BEARER', { defaultValue: 'Bearer Token' }),
+      digest: t('REQUEST_PANE.AUTH_FORM.MODES.DIGEST', { defaultValue: 'Digest Auth' }),
+      ntlm: t('REQUEST_PANE.AUTH_FORM.MODES.NTLM', { defaultValue: 'NTLM' }),
+      oauth1: t('REQUEST_PANE.AUTH_FORM.MODES.OAUTH1', { defaultValue: 'OAuth 1.0' }),
+      oauth2: t('REQUEST_PANE.AUTH_FORM.MODES.OAUTH2', { defaultValue: 'OAuth 2.0' }),
+      wsse: t('REQUEST_PANE.AUTH_FORM.MODES.WSSE', { defaultValue: 'WSSE Auth' }),
+      apikey: t('REQUEST_PANE.AUTH_FORM.MODES.API_KEY', { defaultValue: 'API Key' })
+    };
+
     switch (authMode) {
       case 'none': {
-        return <div className="mt-2">No Auth</div>;
+        return <div className="mt-2">{t('REQUEST_PANE.AUTH_FORM.NO_AUTH', { defaultValue: 'No Auth' })}</div>;
       }
       case 'awsv4': {
         return <AwsV4Auth collection={collection} item={item} request={request} save={save} updateAuth={updateAuth} />;
@@ -108,8 +122,15 @@ const Auth = ({ item, collection }) => {
         return (
           <>
             <div className="flex flex-row w-full gap-2">
-              <div>Auth inherited from {source.name}: </div>
-              <div className="inherit-mode-text">{humanizeRequestAuthMode(source.auth?.mode)}</div>
+              <div>
+                {t('REQUEST_PANE.AUTH_FORM.INHERITED_FROM', {
+                  defaultValue: 'Auth inherited from {{name}}:',
+                  name: source.name
+                })}
+              </div>
+              <div className="inherit-mode-text">
+                {authModeLabelMap[source.auth?.mode] || t('REQUEST_PANE.AUTH_FORM.NO_AUTH', { defaultValue: 'No Auth' })}
+              </div>
             </div>
           </>
         );

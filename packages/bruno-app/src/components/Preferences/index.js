@@ -2,6 +2,7 @@ import classnames from 'classnames';
 import React from 'react';
 import { useSelector, useDispatch } from 'react-redux';
 import { updateActivePreferencesTab } from 'providers/ReduxStore/slices/app';
+import { useTranslation } from 'react-i18next';
 import {
   IconSettings,
   IconPalette,
@@ -27,6 +28,7 @@ import Cache from './Cache/index';
 const Preferences = () => {
   const dispatch = useDispatch();
   const tab = useSelector((state) => state.app.activePreferencesTab);
+  const { t } = useTranslation();
 
   const setTab = (tab) => {
     dispatch(updateActivePreferencesTab({ tab }));
@@ -80,35 +82,35 @@ const Preferences = () => {
         <div className="flex flex-col items-center tabs tablist" role="tablist">
           <div className={getTabClassname('general')} role="tab" onClick={() => setTab('general')}>
             <IconSettings size={16} strokeWidth={1.5} />
-            General
+            {t('PREFERENCES.TABS.GENERAL', { defaultValue: 'General' })}
           </div>
           <div className={getTabClassname('themes')} role="tab" onClick={() => setTab('themes')}>
             <IconPalette size={16} strokeWidth={1.5} />
-            Themes
+            {t('PREFERENCES.TABS.THEMES', { defaultValue: 'Themes' })}
           </div>
           <div className={getTabClassname('display')} role="tab" onClick={() => setTab('display')}>
             <IconBrowser size={16} strokeWidth={1.5} />
-            Display
+            {t('PREFERENCES.TABS.DISPLAY', { defaultValue: 'Display' })}
           </div>
           <div className={getTabClassname('proxy')} role="tab" onClick={() => setTab('proxy')}>
             <IconUserCircle size={16} strokeWidth={1.5} />
-            Proxy
+            {t('PREFERENCES.TABS.PROXY', { defaultValue: 'Proxy' })}
           </div>
           <div className={getTabClassname('keybindings')} role="tab" onClick={() => setTab('keybindings')}>
             <IconKeyboard size={16} strokeWidth={1.5} />
-            Keybindings
+            {t('PREFERENCES.TABS.KEYBINDINGS', { defaultValue: 'Keybindings' })}
           </div>
           <div className={getTabClassname('cache')} role="tab" onClick={() => setTab('cache')}>
             <IconDatabase size={16} strokeWidth={1.5} />
-            Cache
+            {t('PREFERENCES.TABS.CACHE', { defaultValue: 'Cache' })}
           </div>
           <div className={getTabClassname('support')} role="tab" onClick={() => setTab('support')}>
             <IconZoomQuestion size={16} strokeWidth={1.5} />
-            Support
+            {t('PREFERENCES.TABS.SUPPORT', { defaultValue: 'Support' })}
           </div>
           <div className={getTabClassname('beta')} role="tab" onClick={() => setTab('beta')}>
             <IconSquareLetterB size={16} strokeWidth={1.5} />
-            Beta
+            {t('PREFERENCES.TABS.BETA', { defaultValue: 'Beta' })}
           </div>
         </div>
         <section

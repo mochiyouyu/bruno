@@ -1,5 +1,49 @@
-import { Page, expect, test } from '../../../playwright';
+import { Locator, Page, expect, test } from '../../../playwright';
 import { buildSandboxLocators } from './locators';
+
+const escapeRegExp = (value: string) => value.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+
+const byExactText = (page: Page, selector: string, value: string) =>
+  page.locator(selector).filter({ hasText: new RegExp(`^${escapeRegExp(value)}$`) });
+
+const RUN_TEXT = /^(Run|\u8fd0\u884c)$/;
+const RECURSIVE_RUN_TEXT = /^(Recursive Run|\u9012\u5f52\u8fd0\u884c)$/;
+const RESET_TEXT = /^(Reset|\u91cd\u7f6e)$/;
+const RUN_AGAIN_TEXT = /^(Run Again|\u518d\u6b21\u8fd0\u884c)$/;
+const SAVE_TEXT = /^(Save|\u4fdd\u5b58)$/;
+const ALL_TEXT = /^(All|\u5168\u90e8)$/;
+const PASSED_TEXT = /^(Passed|\u901a\u8fc7)$/;
+const FAILED_TEXT = /^(Failed|\u5931\u8d25)$/;
+const SKIPPED_TEXT = /^(Skipped|\u5df2\u8df3\u8fc7)$/;
+const SELECT_ALL_TEXT = /(Select All|\u5168\u9009)/;
+const SUITE_LABEL_TEXT = /^(Suite:|\u5957\u4ef6[:\uff1a])/;
+const COUNTER_TEXT = /(\d+)\s+of\s+(\d+)\s+selected|(?:\u5df2\u9009\u62e9)\s*(\d+)\s*\/\s*(\d+)/;
+const SCENARIO_UPDATED_TEXT = /(Scenario updated|\u573a\u666f\u5df2\u66f4\u65b0)/;
+const SCENARIO_DELETED_TEXT = /(Scenario deleted|\u573a\u666f\u5df2\u5220\u9664)/;
+const SCENARIO_SAVED_TEXT = /(Scenario saved|\u573a\u666f\u5df2\u4fdd\u5b58)/;
+const SUITE_UPDATED_TEXT = /(Suite updated|\u5957\u4ef6\u5df2\u66f4\u65b0)/;
+const SUITE_DELETED_TEXT = /(Suite deleted|\u5957\u4ef6\u5df2\u5220\u9664)/;
+const SUITE_SAVED_TEXT = /(Suite saved|\u5957\u4ef6\u5df2\u4fdd\u5b58)/;
+
+const parseRunnerConfigCounter = (text: string) => {
+  const normalizedText = text.trim();
+  const match = normalizedText.match(/(\d+)\s+of\s+(\d+)\s+selected/) || normalizedText.match(/已选择\s*(\d+)\s*\/\s*(\d+)/);
+  expect(match).toBeTruthy();
+
+  return {
+    selected: parseInt(match![1]),
+    total: parseInt(match![2])
+  };
+};
+
+const waitForToast = async (page: Page, matcher: RegExp) => {
+  await expect(page.getByText(matcher).last()).toBeVisible({ timeout: 10000 });
+  await page.waitForTimeout(150);
+};
+
+export const expectToastMessage = async (page: Page, matcher: RegExp) => {
+  await expect(page.getByText(matcher).last()).toBeVisible({ timeout: 10000 });
+};
 
 /**
  * Builds locators for the runner results view
@@ -7,20 +51,299 @@ import { buildSandboxLocators } from './locators';
  * @returns Object with locators for runner elements
  */
 export const buildRunnerLocators = (page: Page) => ({
-  allButton: () => page.locator('button').filter({ hasText: /^All/ }),
-  passedButton: () => page.locator('button').filter({ hasText: /^Passed/ }),
-  failedButton: () => page.locator('button').filter({ hasText: /^Failed/ }),
-  skippedButton: () => page.locator('button').filter({ hasText: /^Skipped/ }),
-  resetButton: () => page.getByRole('button', { name: 'Reset' }),
+  allButton: () => page.locator('button').filter({ hasText: /^(All|全部)/ }),
+  passedButton: () => page.locator('button').filter({ hasText: /^(Passed|通过)/ }),
+  failedButton: () => page.locator('button').filter({ hasText: /^(Failed|失败)/ }),
+  skippedButton: () => page.locator('button').filter({ hasText: /^(Skipped|已跳过)/ }),
+  resetButton: () => page.getByRole('button', { name: /^(Reset|重置)$/ }),
   runCollectionButton: () => page.getByTestId('runner-run-button'),
-  runAgainButton: () => page.getByRole('button', { name: 'Run Again' }),
+  runAgainButton: () => page.getByRole('button', { name: /^(Run Again|再次运行)$/ }),
   configPanel: () => page.getByTestId('runner-config-panel'),
   configCounter: () => page.getByTestId('runner-config-counter'),
   selectAllButton: () => page.getByTestId('runner-select-all'),
   configResetButton: () => page.getByTestId('runner-config-reset'),
   requestItems: () => page.getByTestId('runner-request-item'),
-  delayInput: () => page.getByTestId('runner-delay-input')
+  requestItem: (name: string) =>
+    page.getByTestId('runner-request-item').filter({
+      has: byExactText(page, '.request-name > span', name)
+    }).first(),
+  delayInput: () => page.getByTestId('runner-delay-input'),
+  scenarioSelect: () => page.getByTestId('runner-scenario-select'),
+  scenarioSaveAsButton: () => page.getByTestId('runner-scenario-save-as'),
+  scenarioUpdateButton: () => page.getByTestId('runner-scenario-update'),
+  scenarioDeleteButton: () => page.getByTestId('runner-scenario-delete'),
+  suiteSelect: () => page.getByTestId('runner-suite-select'),
+  suiteSaveAsButton: () => page.getByTestId('runner-suite-save-as'),
+  suiteUpdateButton: () => page.getByTestId('runner-suite-update'),
+  suiteDeleteButton: () => page.getByTestId('runner-suite-delete'),
+  suiteRunButton: () => page.getByTestId('runner-suite-run'),
+  suiteScenarioItems: () => page.getByTestId('runner-suite-scenario-item'),
+  selectedSuiteScenarioItems: () => page.locator('[data-testid="runner-suite-scenario-item"].is-selected'),
+  suiteScenarioItem: (name: string) =>
+    page.getByTestId('runner-suite-scenario-item').filter({
+      has: byExactText(page, '.suite-panel-name', name)
+    }).first(),
+  suiteScenarioMoveUpButton: (name: string) =>
+    page.getByTestId('runner-suite-scenario-item').filter({
+      has: byExactText(page, '.suite-panel-name', name)
+    }).first().getByTestId('runner-suite-move-up'),
+  suiteScenarioMoveDownButton: (name: string) =>
+    page.getByTestId('runner-suite-scenario-item').filter({
+      has: byExactText(page, '.suite-panel-name', name)
+    }).first().getByTestId('runner-suite-move-down'),
+  saveModal: () => page.getByTestId('save-scenario-modal'),
+  saveModalNameInput: () => page.locator('#scenario-name'),
+  saveModalConfirmButton: () => page.getByTestId('save-scenario-modal').getByRole('button', { name: /^Save$/ }),
+  resultItems: () => page.getByTestId('runner-result-item'),
+  resultItem: (text: string) => page.getByTestId('runner-result-item').filter({ hasText: text }),
+  suiteResultLabel: () => page.locator('div').filter({ hasText: /^(Suite:|套件：)/ }).first()
 });
+
+const parseRunnerConfigCounterCompat = (text: string) => {
+  const normalizedText = text.trim();
+  const match = normalizedText.match(COUNTER_TEXT);
+  expect(match).toBeTruthy();
+
+  return {
+    selected: parseInt(match![1] || match![3]),
+    total: parseInt(match![2] || match![4])
+  };
+};
+
+export const buildRunnerCompatLocators = (page: Page) => ({
+  ...buildRunnerLocators(page),
+  allButton: () => page.locator('button').filter({ hasText: ALL_TEXT }),
+  passedButton: () => page.locator('button').filter({ hasText: PASSED_TEXT }),
+  failedButton: () => page.locator('button').filter({ hasText: FAILED_TEXT }),
+  skippedButton: () => page.locator('button').filter({ hasText: SKIPPED_TEXT }),
+  resetButton: () => page.getByRole('button', { name: RESET_TEXT }),
+  runAgainButton: () => page.getByRole('button', { name: RUN_AGAIN_TEXT }),
+  saveModalConfirmButton: () => page.getByTestId('save-scenario-modal').getByRole('button', { name: SAVE_TEXT }),
+  suiteResultLabel: () => page.locator('div').filter({ hasText: SUITE_LABEL_TEXT }).first()
+});
+
+export const waitForRunnerRequestsInitialized = async (page: Page) => {
+  const locators = buildRunnerCompatLocators(page);
+
+  await expect(async () => {
+    const text = await locators.configCounter().innerText();
+    const { total } = parseRunnerConfigCounterCompat(text);
+    expect(total).toBeGreaterThan(0);
+    expect(await locators.requestItems().count()).toBeGreaterThan(0);
+  }).toPass({ timeout: 30000 });
+};
+
+export const expectRunnerConfigSelection = async (page: Page, selectedCount: number) => {
+  const locators = buildRunnerCompatLocators(page);
+
+  await expect(async () => {
+    const text = await locators.configCounter().innerText();
+    const { selected } = parseRunnerConfigCounterCompat(text);
+    expect(selected).toBe(selectedCount);
+  }).toPass({ timeout: 10000 });
+};
+
+export const expectRunnerRequestSelection = async (
+  page: Page,
+  options: {
+    selected: string[];
+    unselected?: string[];
+    selectedCount?: number;
+  }
+) => {
+  await test.step(`Validate runner request selection: ${options.selected.join(', ')}`, async () => {
+    if (options.selectedCount !== undefined) {
+      await expectRunnerConfigSelection(page, options.selectedCount);
+    }
+
+    const selectedNames = await page.locator('[data-testid="runner-request-item"]').evaluateAll((items) => items
+      .filter((item) =>
+        item.classList.contains('is-selected')
+        || Boolean(item.querySelector('.checkbox-icon'))
+      )
+      .map((item) => item.querySelector('.request-name > span')?.textContent?.trim())
+      .filter(Boolean)
+    );
+
+    for (const requestName of options.selected) {
+      expect(selectedNames).toContain(requestName);
+    }
+
+    for (const requestName of options.unselected || []) {
+      expect(selectedNames).not.toContain(requestName);
+    }
+  });
+};
+
+export const selectRunnerRequests = async (page: Page, requestNames: string[]) => {
+  const locators = buildRunnerCompatLocators(page);
+
+  await test.step(`Select runner requests: ${requestNames.join(', ')}`, async () => {
+    await waitForRunnerRequestsInitialized(page);
+    const currentSelection = parseRunnerConfigCounterCompat(await locators.configCounter().innerText());
+    if (currentSelection.selected !== 0) {
+      await locators.selectAllButton().click();
+
+      const selectionAfterFirstClick = parseRunnerConfigCounterCompat(await locators.configCounter().innerText());
+      if (selectionAfterFirstClick.selected !== 0) {
+        await locators.selectAllButton().click();
+      }
+    }
+
+    await expectRunnerConfigSelection(page, 0);
+    await expect(locators.selectAllButton()).toContainText(SELECT_ALL_TEXT, { timeout: 10000 });
+
+    for (const requestName of requestNames) {
+      const item = locators.requestItem(requestName);
+      await expect(item).toBeVisible();
+      await item.locator('.checkbox-container').click();
+    }
+
+    await expectRunnerConfigSelection(page, requestNames.length);
+  });
+};
+
+export const selectRunnerScenario = async (page: Page, name: string) => {
+  const locators = buildRunnerCompatLocators(page);
+
+  await test.step(`Select runner scenario "${name}"`, async () => {
+    await locators.scenarioSelect().selectOption({ label: name });
+    await expect(locators.scenarioSelect()).toHaveValue(/.+/);
+    await expect(locators.scenarioUpdateButton()).toBeEnabled();
+    await expect(locators.scenarioDeleteButton()).toBeEnabled();
+  });
+};
+
+export const updateRunnerScenario = async (page: Page) => {
+  const locators = buildRunnerCompatLocators(page);
+
+  await test.step('Update active runner scenario', async () => {
+    await expect(locators.scenarioUpdateButton()).toBeEnabled();
+    await locators.scenarioUpdateButton().click();
+    await waitForToast(page, SCENARIO_UPDATED_TEXT);
+  });
+};
+
+export const deleteRunnerScenario = async (page: Page) => {
+  const locators = buildRunnerCompatLocators(page);
+
+  await test.step('Delete active runner scenario', async () => {
+    await expect(locators.scenarioDeleteButton()).toBeEnabled();
+    await locators.scenarioDeleteButton().click();
+    await waitForToast(page, SCENARIO_DELETED_TEXT);
+    await expect(locators.scenarioSelect()).toHaveValue('');
+    await expect(locators.scenarioUpdateButton()).toBeDisabled();
+    await expect(locators.scenarioDeleteButton()).toBeDisabled();
+  });
+};
+
+const saveRunnerEntity = async (page: Page, name: string, trigger: () => Locator) => {
+  const locators = buildRunnerCompatLocators(page);
+
+  await trigger().click();
+  await expect(locators.saveModal()).toBeVisible();
+  await locators.saveModalNameInput().fill(name);
+  await locators.saveModalConfirmButton().click();
+  await expect(locators.saveModal()).toBeHidden({ timeout: 10000 });
+};
+
+export const saveRunnerScenario = async (page: Page, name: string) => {
+  const locators = buildRunnerCompatLocators(page);
+
+  await test.step(`Save runner scenario "${name}"`, async () => {
+    await saveRunnerEntity(page, name, () => locators.scenarioSaveAsButton());
+    await waitForToast(page, SCENARIO_SAVED_TEXT);
+    await expect(locators.scenarioSelect()).toContainText(name);
+  });
+};
+
+export const saveRunnerSuite = async (page: Page, name: string) => {
+  const locators = buildRunnerCompatLocators(page);
+
+  await test.step(`Save runner suite "${name}"`, async () => {
+    await saveRunnerEntity(page, name, () => locators.suiteSaveAsButton());
+    await waitForToast(page, SUITE_SAVED_TEXT);
+    await expect(locators.suiteSelect()).toContainText(name);
+  });
+};
+
+export const selectRunnerSuiteScenarios = async (page: Page, scenarioNames: string[]) => {
+  const locators = buildRunnerCompatLocators(page);
+
+  await test.step(`Select suite scenarios: ${scenarioNames.join(', ')}`, async () => {
+    for (const scenarioName of scenarioNames) {
+      const item = locators.suiteScenarioItem(scenarioName);
+      await expect(item).toBeVisible();
+      await item.locator('.suite-panel-checkbox').click();
+    }
+
+    await expect(locators.suiteSaveAsButton()).toBeEnabled();
+    await expect(locators.suiteRunButton()).toBeEnabled();
+  });
+};
+
+export const toggleRunnerSuiteScenario = async (page: Page, scenarioName: string) => {
+  const locators = buildRunnerCompatLocators(page);
+
+  await test.step(`Toggle suite scenario "${scenarioName}"`, async () => {
+    const item = locators.suiteScenarioItem(scenarioName);
+    await expect(item).toBeVisible();
+    await item.locator('.suite-panel-checkbox').click();
+  });
+};
+
+export const moveRunnerSuiteScenario = async (page: Page, scenarioName: string, direction: 'up' | 'down') => {
+  const locators = buildRunnerCompatLocators(page);
+  const button = direction === 'up'
+    ? locators.suiteScenarioMoveUpButton(scenarioName)
+    : locators.suiteScenarioMoveDownButton(scenarioName);
+
+  await test.step(`Move suite scenario "${scenarioName}" ${direction}`, async () => {
+    await expect(button).toBeEnabled();
+    await button.click();
+    await expect(button).toBeDisabled({ timeout: 10000 });
+  });
+};
+
+export const expectRunnerSuiteScenarioSelectionCount = async (page: Page, count: number) => {
+  const locators = buildRunnerCompatLocators(page);
+
+  await expect(locators.selectedSuiteScenarioItems()).toHaveCount(count);
+};
+
+export const selectRunnerSuite = async (page: Page, name: string) => {
+  const locators = buildRunnerCompatLocators(page);
+
+  await test.step(`Select runner suite "${name}"`, async () => {
+    await locators.suiteSelect().selectOption({ label: name });
+    await expect(locators.suiteSelect()).toHaveValue(/.+/);
+    await expect(locators.suiteUpdateButton()).toBeEnabled();
+    await expect(locators.suiteDeleteButton()).toBeEnabled();
+  });
+};
+
+export const updateRunnerSuite = async (page: Page) => {
+  const locators = buildRunnerCompatLocators(page);
+
+  await test.step('Update active runner suite', async () => {
+    await expect(locators.suiteUpdateButton()).toBeEnabled();
+    await locators.suiteUpdateButton().click();
+    await waitForToast(page, SUITE_UPDATED_TEXT);
+  });
+};
+
+export const deleteRunnerSuite = async (page: Page) => {
+  const locators = buildRunnerCompatLocators(page);
+
+  await test.step('Delete active runner suite', async () => {
+    await expect(locators.suiteDeleteButton()).toBeEnabled();
+    await locators.suiteDeleteButton().click();
+    await waitForToast(page, SUITE_DELETED_TEXT);
+    await expect(locators.suiteSelect()).toHaveValue('');
+    await expect(locators.suiteUpdateButton()).toBeDisabled();
+    await expect(locators.suiteDeleteButton()).toBeDisabled();
+  });
+};
 
 /**
  * Reads test result counts from the filter buttons in the runner results view
@@ -28,7 +351,7 @@ export const buildRunnerLocators = (page: Page) => ({
  * @returns An object with totalRequests, passed, failed, and skipped counts
  */
 export const getRunnerResultCounts = async (page: Page) => {
-  const locators = buildRunnerLocators(page);
+  const locators = buildRunnerCompatLocators(page);
 
   const totalRequests = parseInt(await locators.allButton().locator('span').innerText());
   const passed = parseInt(await locators.passedButton().locator('span').innerText());
@@ -57,12 +380,12 @@ export const openRunnerTab = async (page: Page, collectionName: string) => {
     await icon.waitFor({ state: 'visible', timeout: 5000 });
     await icon.click();
 
-    const runMenuItem = page.getByText('Run', { exact: true });
+    const runMenuItem = page.locator('.dropdown-item').filter({ hasText: RUN_TEXT }).first();
     await runMenuItem.waitFor({ state: 'visible' });
     await runMenuItem.click();
 
     // Wait for the config panel to load
-    const locators = buildRunnerLocators(page);
+    const locators = buildRunnerCompatLocators(page);
     await locators.configPanel().waitFor({ state: 'visible', timeout: 10000 });
   });
 };
@@ -90,12 +413,12 @@ export const runCollection = async (page: Page, collectionName: string) => {
     await icon.click();
 
     // Click Run menu item
-    const runMenuItem = page.getByText('Run', { exact: true });
+    const runMenuItem = page.locator('.dropdown-item').filter({ hasText: RUN_TEXT }).first();
     await runMenuItem.waitFor({ state: 'visible' });
     await runMenuItem.click();
 
     // Handle runner tab - reset if needed, then run
-    const locators = buildRunnerLocators(page);
+    const locators = buildRunnerCompatLocators(page);
 
     // Check if Reset button is visible (means there are existing results)
     const resetVisible = await locators.resetButton().isVisible({ timeout: 1000 }).catch(() => false);
@@ -159,17 +482,17 @@ export const runFolder = async (page: Page, collectionName: string, folderPath: 
     await menuIcon.click();
 
     // Click "Run" in the dropdown
-    const runMenuItem = page.locator('.dropdown-item').filter({ hasText: 'Run' });
+    const runMenuItem = page.locator('.dropdown-item').filter({ hasText: RUN_TEXT }).first();
     await runMenuItem.waitFor({ state: 'visible' });
     await runMenuItem.click();
 
     // In the RunCollectionItem modal, click "Recursive Run"
-    const recursiveRunButton = page.getByRole('button', { name: 'Recursive Run' });
+    const recursiveRunButton = page.getByRole('button', { name: RECURSIVE_RUN_TEXT });
     await recursiveRunButton.waitFor({ state: 'visible', timeout: 5000 });
     await recursiveRunButton.click();
 
     // Wait for the run to complete
-    const runnerLocators = buildRunnerLocators(page);
+    const runnerLocators = buildRunnerCompatLocators(page);
     await runnerLocators.runAgainButton().waitFor({ timeout: 2 * 60 * 1000 });
   });
 };

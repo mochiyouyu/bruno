@@ -18,6 +18,7 @@ import StatusDot from 'components/StatusDot';
 import ResponsiveTabs from 'ui/ResponsiveTabs';
 import HeightBoundContainer from 'ui/HeightBoundContainer';
 import AuthMode from '../Auth/AuthMode/index';
+import { useTranslation } from 'react-i18next';
 
 const TAB_CONFIG = [
   { key: 'params', label: 'Params' },
@@ -47,6 +48,7 @@ const TAB_PANELS = {
 
 const HttpRequestPane = ({ item, collection }) => {
   const dispatch = useDispatch();
+  const { t } = useTranslation();
   const tabs = useSelector((state) => state.tabs.tabs);
   const activeTabUid = useSelector((state) => state.tabs.activeTabUid);
 
@@ -105,17 +107,23 @@ const HttpRequestPane = ({ item, collection }) => {
   }, [activeCounts, body.mode, auth.mode, script, item.preRequestScriptErrorMessage, item.postResponseScriptErrorMessage, item.testScriptErrorMessage, tests, docs, tags]);
 
   const allTabs = useMemo(
-    () => TAB_CONFIG.map(({ key, label }) => ({ key, label, indicator: indicators[key] })),
-    [indicators]
+    () => TAB_CONFIG.map(({ key, label }) => ({
+      key,
+      label: t(`REQUEST_PANE.TABS.${key.toUpperCase()}`, { defaultValue: label }),
+      indicator: indicators[key]
+    })),
+    [indicators, t]
   );
 
   const tabPanel = useMemo(() => {
     const Component = TAB_PANELS[requestPaneTab];
-    return Component ? <Component item={item} collection={collection} /> : <div className="mt-4">404 | Not found</div>;
-  }, [requestPaneTab, item, collection]);
+    return Component
+      ? <Component item={item} collection={collection} />
+      : <div className="mt-4">{t('REQUEST_PANE.NOT_FOUND', { defaultValue: '404 | Not found' })}</div>;
+  }, [requestPaneTab, item, collection, t]);
 
   if (!activeTabUid || !focusedTab?.uid || !requestPaneTab) {
-    return <div className="pb-4 px-4">An error occurred!</div>;
+    return <div className="pb-4 px-4">{t('REQUEST_PANE.ERROR_OCCURRED', { defaultValue: 'An error occurred!' })}</div>;
   }
 
   const rightContent = requestPaneTab === 'body' ? (

@@ -10,6 +10,7 @@ import { DEFAULT_COLLECTION_FORMAT } from 'utils/common/constants';
 import { multiLineMsg } from 'utils/common';
 import { formatIpcError } from 'utils/common/error';
 import StyledWrapper from './StyledWrapper';
+import { useTranslation } from 'react-i18next';
 
 const InlineCollectionCreator = ({ onComplete, onCancel, onOpenAdvanced }) => {
   const inputRef = useRef(null);
@@ -24,6 +25,7 @@ const InlineCollectionCreator = ({ onComplete, onCancel, onOpenAdvanced }) => {
   const activeWorkspaceUid = useSelector((state) => state.workspaces?.activeWorkspaceUid);
   const activeWorkspace = workspaces.find((w) => w.uid === activeWorkspaceUid);
   const isDefaultWorkspace = activeWorkspace?.type === 'default';
+  const { t } = useTranslation();
 
   const defaultLocation = isDefaultWorkspace
     ? get(preferences, 'general.defaultLocation', '')
@@ -66,7 +68,7 @@ const InlineCollectionCreator = ({ onComplete, onCancel, onOpenAdvanced }) => {
       if (fromOutside) {
         onCancel();
       } else {
-        toast.error('Collection name is required');
+        toast.error(t('INLINE_COLLECTION.COLLECTION_NAME_REQUIRED', { defaultValue: 'Collection name is required' }));
       }
       return;
     }
@@ -80,7 +82,7 @@ const InlineCollectionCreator = ({ onComplete, onCancel, onOpenAdvanced }) => {
     }
 
     if (!defaultLocation) {
-      toast.error('Please set a default location in Preferences > General');
+      toast.error(t('INLINE_COLLECTION.DEFAULT_LOCATION_REQUIRED', { defaultValue: 'Please set a default location in Preferences > General' }));
       onCancel();
       return;
     }
@@ -89,13 +91,16 @@ const InlineCollectionCreator = ({ onComplete, onCancel, onOpenAdvanced }) => {
     try {
       const folderName = sanitizeName(name);
       await dispatch(createCollection(name, folderName, defaultLocation, { format: DEFAULT_COLLECTION_FORMAT }));
-      toast.success('Collection created!');
+      toast.success(t('INLINE_COLLECTION.COLLECTION_CREATED', { defaultValue: 'Collection created!' }));
       onComplete();
     } catch (e) {
-      toast.error(multiLineMsg('An error occurred while creating the collection', formatIpcError(e)));
+      toast.error(multiLineMsg(
+        t('INLINE_COLLECTION.COLLECTION_CREATE_FAILED', { defaultValue: 'An error occurred while creating the collection' }),
+        formatIpcError(e)
+      ));
       setIsCreating(false);
     }
-  }, [isCreating, defaultLocation, dispatch, onCancel, onComplete]);
+  }, [isCreating, defaultLocation, dispatch, onCancel, onComplete, t]);
 
   // Click outside to create
   useEffect(() => {
@@ -142,7 +147,7 @@ const InlineCollectionCreator = ({ onComplete, onCancel, onOpenAdvanced }) => {
               openingAdvancedRef.current = true;
               onOpenAdvanced(inputRef.current?.value?.trim());
             }}
-            title="Advanced options"
+            title={t('COLLECTION_HEADER.ADVANCED_OPTIONS', { defaultValue: 'Advanced options' })}
             disabled={isCreating}
           >
             <IconSettings size={13} strokeWidth={1.5} />
@@ -153,7 +158,7 @@ const InlineCollectionCreator = ({ onComplete, onCancel, onOpenAdvanced }) => {
             className="inline-action-btn save"
             onClick={handleCreate}
             onMouseDown={(e) => e.preventDefault()}
-            title="Create"
+            title={t('COLLECTION_HEADER.CREATE', { defaultValue: 'Create' })}
             disabled={isCreating}
           >
             <IconCheck size={14} strokeWidth={2} />
@@ -162,7 +167,7 @@ const InlineCollectionCreator = ({ onComplete, onCancel, onOpenAdvanced }) => {
             className="inline-action-btn cancel"
             onClick={handleCancel}
             onMouseDown={(e) => e.preventDefault()}
-            title="Cancel"
+            title={t('COLLECTION_HEADER.CANCEL', { defaultValue: 'Cancel' })}
             disabled={isCreating}
           >
             <IconX size={14} strokeWidth={2} />

@@ -1274,7 +1274,7 @@ const registerNetworkIpc = (mainWindow) => {
   ipcMain.handle('fetch-gql-schema', fetchGqlSchemaHandler);
 
   ipcMain.handle(
-    'renderer:run-collection-folder', async (event, folder, collection, environment, runtimeVariables, recursive, delay, tags, selectedRequestUids) => {
+    'renderer:run-collection-folder', async (event, folder, collection, environment, runtimeVariables, recursive, delay, tags, selectedRequestUids, executionPlan, runContext) => {
       const collectionUid = collection.uid;
       const collectionPath = collection.pathname;
       const folderUid = folder ? folder.uid : null;
@@ -1321,7 +1321,8 @@ const registerNetworkIpc = (mainWindow) => {
         isRecursive: recursive,
         collectionUid,
         folderUid,
-        cancelTokenUid
+        cancelTokenUid,
+        ...(runContext || {})
       });
 
       try {
@@ -1352,25 +1353,48 @@ const registerNetworkIpc = (mainWindow) => {
           });
         }
 
-        // Filter requests based on selectedRequestUids (for "Configure requests to run")
-        if (selectedRequestUids && selectedRequestUids.length > 0) {
-          const uidIndexMap = new Map();
-          selectedRequestUids.forEach((uid, index) => {
-            uidIndexMap.set(uid, index);
-          });
+        let executionEntries = folderRequests.map((item) => ({ item }));
 
-          folderRequests = folderRequests
-            .filter((request) => uidIndexMap.has(request.uid))
-            .sort((a, b) => {
-              const indexA = uidIndexMap.get(a.uid);
-              const indexB = uidIndexMap.get(b.uid);
-              return indexA - indexB;
-            });
+        if (Array.isArray(executionPlan) && executionPlan.length > 0) {
+          const requestMap = new Map(folderRequests.map((request) => [request.uid, request]));
+          executionEntries = executionPlan
+            .map((entry, index) => {
+              const request = requestMap.get(entry.uid);
+              if (!request) {
+                return null;
+              }
+
+              return {
+                item: request,
+                executionIndex: index,
+                scenarioId: entry.scenarioId || null,
+                scenarioName: entry.scenarioName || null,
+                suiteId: entry.suiteId || runContext?.suiteId || null,
+                suiteName: entry.suiteName || runContext?.suiteName || null,
+                delay: entry.delay
+              };
+            })
+            .filter(Boolean);
+        } else if (selectedRequestUids && selectedRequestUids.length > 0) {
+          const requestMap = new Map(folderRequests.map((request) => [request.uid, request]));
+          executionEntries = selectedRequestUids
+            .map((uid, index) => {
+              const request = requestMap.get(uid);
+              if (!request) {
+                return null;
+              }
+
+              return {
+                item: request,
+                executionIndex: index
+              };
+            })
+            .filter(Boolean);
         }
 
         let currentRequestIndex = 0;
         let nJumps = 0; // count the number of jumps to avoid infinite loops
-        while (currentRequestIndex < folderRequests.length) {
+        while (currentRequestIndex < executionEntries.length) {
           // user requested to cancel runner
           if (abortController.signal.aborted) {
             let error = new Error('Runner execution cancelled');
@@ -1380,13 +1404,25 @@ const registerNetworkIpc = (mainWindow) => {
 
           stopRunnerExecution = false;
 
-          const item = cloneDeep(folderRequests[currentRequestIndex]);
+          const executionEntry = executionEntries[currentRequestIndex];
+          const item = cloneDeep(executionEntry.item);
           let nextRequestName;
           const itemUid = item.uid;
           const eventData = {
             collectionUid,
             folderUid,
-            itemUid
+            itemUid,
+            ...(executionEntry.scenarioId ? {
+              scenarioId: executionEntry.scenarioId,
+              scenarioName: executionEntry.scenarioName
+            } : {}),
+            ...(executionEntry.suiteId ? {
+              suiteId: executionEntry.suiteId,
+              suiteName: executionEntry.suiteName
+            } : {}),
+            ...(executionEntry.executionIndex !== undefined ? {
+              executionIndex: executionEntry.executionIndex
+            } : {})
           };
 
           let timeStart;
@@ -1601,8 +1637,9 @@ const registerNetworkIpc = (mainWindow) => {
             timeStart = Date.now();
             let response, responseTime;
             try {
-              if (delay && !Number.isNaN(delay) && delay > 0) {
-                const delayPromise = new Promise((resolve) => setTimeout(resolve, delay));
+              const requestDelay = executionEntry.delay !== undefined ? executionEntry.delay : delay;
+              if (requestDelay && !Number.isNaN(requestDelay) && requestDelay > 0) {
+                const delayPromise = new Promise((resolve) => setTimeout(resolve, requestDelay));
 
                 const cancellationPromise = new Promise((_, reject) => {
                   abortController.signal.addEventListener('abort', () => {
@@ -1883,7 +1920,7 @@ const registerNetworkIpc = (mainWindow) => {
             if (nextRequestName === null) {
               break;
             }
-            const nextRequestIdx = folderRequests.findIndex((request) => request.name === nextRequestName);
+            const nextRequestIdx = executionEntries.findIndex(({ item: request }) => request.name === nextRequestName);
             if (nextRequestIdx >= 0) {
               currentRequestIndex = nextRequestIdx;
             } else {

@@ -64,6 +64,14 @@ const hasPresets = (brunoConfig: any): boolean => {
     || brunoConfig?.presets?.requestUrl?.length;
 };
 
+const hasRunnerScenarios = (brunoConfig: any): boolean => {
+  return Array.isArray(brunoConfig?.runnerScenarios) && brunoConfig.runnerScenarios.length > 0;
+};
+
+const hasRunnerSuites = (brunoConfig: any): boolean => {
+  return Array.isArray(brunoConfig?.runnerScenarioSuites) && brunoConfig.runnerScenarioSuites.length > 0;
+};
+
 const stringifyCollection = (collectionRoot: any, brunoConfig: any): string => {
   try {
     const oc: OpenCollection = {};
@@ -223,7 +231,7 @@ const stringifyCollection = (collectionRoot: any, brunoConfig: any): string => {
     // extensions
     oc.extensions = {};
 
-    const hasBrunoExtensions = brunoConfig.ignore?.length || hasPresets(brunoConfig);
+    const hasBrunoExtensions = brunoConfig.ignore?.length || hasPresets(brunoConfig) || hasRunnerScenarios(brunoConfig) || hasRunnerSuites(brunoConfig);
 
     if (hasBrunoExtensions) {
       const brunoExtension: any = {};
@@ -247,6 +255,32 @@ const stringifyCollection = (collectionRoot: any, brunoConfig: any): string => {
         brunoExtension.presets = {
           request: presetsRequest
         };
+      }
+
+      if (hasRunnerScenarios(brunoConfig) || hasRunnerSuites(brunoConfig)) {
+        brunoExtension.runner = {};
+      }
+
+      if (hasRunnerScenarios(brunoConfig)) {
+        brunoExtension.runner.scenarios = brunoConfig.runnerScenarios.map((scenario: any) => ({
+          id: scenario.id,
+          name: scenario.name,
+          selectedRequestItems: Array.isArray(scenario.selectedRequestItems) ? scenario.selectedRequestItems : [],
+          requestItemsOrder: Array.isArray(scenario.requestItemsOrder) ? scenario.requestItemsOrder : [],
+          ...(scenario.delay !== undefined ? { delay: scenario.delay } : {}),
+          tags: {
+            include: Array.isArray(scenario.tags?.include) ? scenario.tags.include : [],
+            exclude: Array.isArray(scenario.tags?.exclude) ? scenario.tags.exclude : []
+          }
+        }));
+      }
+
+      if (hasRunnerSuites(brunoConfig)) {
+        brunoExtension.runner.suites = brunoConfig.runnerScenarioSuites.map((suite: any) => ({
+          id: suite.id,
+          name: suite.name,
+          scenarioIdsOrder: Array.isArray(suite.scenarioIdsOrder) ? suite.scenarioIdsOrder : []
+        }));
       }
 
       oc.extensions.bruno = brunoExtension;

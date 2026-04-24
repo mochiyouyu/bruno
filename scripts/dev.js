@@ -26,8 +26,20 @@ const rootDir = path.join(__dirname, '..');
 const webDir = path.join(rootDir, 'packages/bruno-app');
 const electronDir = path.join(rootDir, 'packages/bruno-electron');
 
+const spawnNpm = (args, options = {}) => {
+  if (process.platform === 'win32') {
+    return spawn('cmd.exe', ['/d', '/s', '/c', `npm.cmd ${args.join(' ')}`], options);
+  }
+
+  return spawn('npm', args, options);
+};
+
 let electronProcess = null;
 let detectedPort = null;
+let webServerReady = false;
+const ansiRegex = /\x1B\[[0-9;]*m/g;
+
+const stripAnsi = (value) => value.replace(ansiRegex, '');
 
 // Regex to match rsbuild's local URL output (e.g., "➜ Local:    http://localhost:3000/")
 const portRegex = /Local:\s+http:\/\/localhost:(\d+)/;
@@ -35,24 +47,38 @@ const portRegex = /Local:\s+http:\/\/localhost:(\d+)/;
 console.log(`\n${colors.bright}${colors.yellow}🚀 Starting Bruno development environment...${colors.reset}\n`);
 
 // Start the rsbuild dev server
-const webProcess = spawn('npm', ['run', 'dev'], {
+const webProcess = spawnNpm(['run', 'dev'], {
   cwd: webDir,
   stdio: ['inherit', 'pipe', 'pipe'],
-  shell: true
+  shell: false
 });
+
+const tryStartElectron = () => {
+  if (!detectedPort || !webServerReady || electronProcess) {
+    return;
+  }
+
+  log.success(`Detected dev server on port ${colors.bright}${detectedPort}${colors.reset}`);
+  startElectron(detectedPort);
+};
 
 webProcess.stdout.on('data', (data) => {
   const output = data.toString();
+  const normalizedOutput = stripAnsi(output);
   process.stdout.write(output);
 
   // Try to detect the port from rsbuild output
   if (!detectedPort) {
-    const match = output.match(portRegex);
+    const match = normalizedOutput.match(portRegex);
     if (match) {
       detectedPort = match[1];
-      log.success(`Detected dev server on port ${colors.bright}${detectedPort}${colors.reset}`);
-      startElectron(detectedPort);
+      tryStartElectron();
     }
+  }
+
+  if (!webServerReady && normalizedOutput.includes('ready   Built')) {
+    webServerReady = true;
+    tryStartElectron();
   }
 });
 
@@ -68,10 +94,10 @@ webProcess.on('close', (code) => {
 function startElectron(port) {
   log.info(`Starting Electron with ${colors.cyan}BRUNO_DEV_PORT=${port}${colors.reset}`);
 
-  electronProcess = spawn('npm', ['run', 'dev'], {
+  electronProcess = spawnNpm(['run', 'dev'], {
     cwd: electronDir,
     stdio: 'inherit',
-    shell: true,
+    shell: false,
     env: {
       ...process.env,
       BRUNO_DEV_PORT: port

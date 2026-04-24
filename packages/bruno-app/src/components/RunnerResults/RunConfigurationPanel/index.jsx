@@ -2,6 +2,7 @@ import React, { useEffect, useState, useCallback, useRef } from 'react';
 import { useDrag, useDrop } from 'react-dnd';
 import { getEmptyImage } from 'react-dnd-html5-backend';
 import { IconGripVertical, IconCheck } from '@tabler/icons';
+import { useTranslation } from 'react-i18next';
 import { useDispatch } from 'react-redux';
 import { updateRunnerConfiguration } from 'providers/ReduxStore/slices/collections/actions';
 import StyledWrapper from './StyledWrapper';
@@ -172,8 +173,9 @@ const RequestItem = ({ item, index, moveItem, isSelected, onSelect, onDrop, isDi
   );
 };
 
-const RunConfigurationPanel = ({ collection, selectedItems, setSelectedItems, tags }) => {
+const RunConfigurationPanel = ({ collection, selectedItems, setSelectedItems, tags, onResetConfiguration }) => {
   const dispatch = useDispatch();
+  const { t } = useTranslation();
   const [flattenedRequests, setFlattenedRequests] = useState([]);
   const [originalRequests, setOriginalRequests] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -380,6 +382,10 @@ const RunConfigurationPanel = ({ collection, selectedItems, setSelectedItems, ta
   const handleReset = useCallback(() => {
     try {
       pendingReselectRef.current.clear();
+      if (onResetConfiguration) {
+        onResetConfiguration();
+        return;
+      }
       const resetRequests = cloneDeep(originalRequests);
       setFlattenedRequests(resetRequests);
       const enabledUids = resetRequests
@@ -391,13 +397,17 @@ const RunConfigurationPanel = ({ collection, selectedItems, setSelectedItems, ta
     } catch (error) {
       console.error('Error resetting configuration:', error);
     }
-  }, [originalRequests, setSelectedItems, collection.uid, dispatch, tags]);
+  }, [onResetConfiguration, originalRequests, setSelectedItems, collection.uid, dispatch, tags]);
 
   return (
     <StyledWrapper data-testid="runner-config-panel">
       <div className="header">
         <div className="counter" data-testid="runner-config-counter">
-          {selectedItems.length} of {enabledCount} selected
+          {t('RUNNER.CONFIG.COUNTER', {
+            defaultValue: '{{selected}} of {{total}} selected',
+            selected: selectedItems.length,
+            total: enabledCount
+          })}
         </div>
         <div className="actions">
           <Button
@@ -405,24 +415,26 @@ const RunConfigurationPanel = ({ collection, selectedItems, setSelectedItems, ta
             onClick={handleSelectAll}
             data-testid="runner-select-all"
           >
-            {selectedItems.length === enabledCount ? 'Deselect All' : 'Select All'}
+            {selectedItems.length === enabledCount
+              ? t('RUNNER.CONFIG.DESELECT_ALL', { defaultValue: 'Deselect All' })
+              : t('RUNNER.CONFIG.SELECT_ALL', { defaultValue: 'Select All' })}
           </Button>
           <Button
             variant="ghost"
             onClick={handleReset}
-            title="Reset selection and order"
+            title={t('RUNNER.CONFIG.RESET_TITLE', { defaultValue: 'Reset selection and order' })}
             data-testid="runner-config-reset"
           >
-            Reset
+            {t('RUNNER.ACTIONS.RESET', { defaultValue: 'Reset' })}
           </Button>
         </div>
       </div>
 
       <div className="request-list">
         {isLoading ? (
-          <div className="loading-message">Loading requests...</div>
+          <div className="loading-message">{t('RUNNER.CONFIG.LOADING', { defaultValue: 'Loading requests...' })}</div>
         ) : flattenedRequests.length === 0 ? (
-          <div className="empty-message">No requests found in this collection</div>
+          <div className="empty-message">{t('RUNNER.CONFIG.EMPTY', { defaultValue: 'No requests found in this collection' })}</div>
         ) : (
           <div className="requests-container">
             {flattenedRequests.map((item, idx) => {

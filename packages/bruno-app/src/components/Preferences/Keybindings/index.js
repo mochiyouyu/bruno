@@ -10,6 +10,7 @@ import { savePreferences } from 'providers/ReduxStore/slices/app';
 import { KEY_BINDING_SECTIONS } from 'providers/Hotkeys/keyMappings.js';
 import { Tooltip } from 'react-tooltip';
 import ToggleSwitch from 'components/ToggleSwitch/index';
+import { useTranslation } from 'react-i18next';
 
 const SEP = '+bind+';
 const getOS = () => (isMacOS() ? 'mac' : 'windows');
@@ -302,6 +303,7 @@ const Keybindings = () => {
   const dispatch = useDispatch();
   const preferences = useSelector((state) => state.app.preferences);
   const { theme } = useTheme();
+  const { t } = useTranslation();
 
   const os = getOS();
   const keybindingsEnabled = preferences?.keybindingsEnabled !== false;
@@ -360,6 +362,7 @@ const Keybindings = () => {
           return {
             action,
             name: binding.name,
+            nameKey: binding.nameKey,
             keys: binding[os],
             readOnly: binding.readOnly,
             displayValue: binding.displayValue
@@ -369,6 +372,7 @@ const Keybindings = () => {
 
       return {
         heading: section.heading,
+        headingKey: section.headingKey,
         rows
       };
     }).filter((section) => section.rows.length > 0);
@@ -455,13 +459,18 @@ const Keybindings = () => {
     const sig = comboSignature(arr);
 
     if (!sig) {
-      return { code: ERROR.EMPTY, message: `Shortcut can’t be empty.` };
+      return {
+        code: ERROR.EMPTY,
+        message: t('KEYBINDINGS.ERRORS.EMPTY', { defaultValue: 'Shortcut cannot be empty.' })
+      };
     }
 
     if (isOnlyModifiers(arr)) {
       return {
         code: ERROR.ONLY_MODIFIERS,
-        message: 'Add a non-modifier key (e.g. Ctrl + K).'
+        message: t('KEYBINDINGS.ERRORS.ONLY_MODIFIERS', {
+          defaultValue: 'Add a non-modifier key (e.g. Ctrl + K).'
+        })
       };
     }
 
@@ -470,8 +479,12 @@ const Keybindings = () => {
         code: ERROR.MISSING_REQUIRED_MOD,
         message:
           os === 'mac'
-            ? 'macOS shortcuts must include at least one modifier (command/alt/shift/ctrl).'
-            : 'Windows shortcuts must include at least one modifier (ctrl/alt/shift).'
+            ? t('KEYBINDINGS.ERRORS.MISSING_REQUIRED_MOD_MAC', {
+              defaultValue: 'macOS shortcuts must include at least one modifier (command/alt/shift/ctrl).'
+            })
+            : t('KEYBINDINGS.ERRORS.MISSING_REQUIRED_MOD_WINDOWS', {
+              defaultValue: 'Windows shortcuts must include at least one modifier (ctrl/alt/shift).'
+            })
       };
     }
 
@@ -479,21 +492,23 @@ const Keybindings = () => {
     if (nonModifierCount > 1) {
       return {
         code: ERROR.MULTIPLE_NON_MODIFIERS,
-        message: 'Only one non-modifier key allowed (e.g. Cmd + Shift + K).'
+        message: t('KEYBINDINGS.ERRORS.MULTIPLE_NON_MODIFIERS', {
+          defaultValue: 'Only one non-modifier key allowed (e.g. Cmd + Shift + K).'
+        })
       };
     }
 
     if (RESERVED_BY_OS[os]?.has(sig)) {
       return {
         code: ERROR.RESERVED,
-        message: 'This shortcut is reserved by the OS.'
+        message: t('KEYBINDINGS.ERRORS.RESERVED', { defaultValue: 'This shortcut is reserved by the OS.' })
       };
     }
 
     if (buildUsedSignatures(action).has(sig)) {
       return {
         code: ERROR.DUPLICATE,
-        message: 'That shortcut is already in use.'
+        message: t('KEYBINDINGS.ERRORS.DUPLICATE', { defaultValue: 'That shortcut is already in use.' })
       };
     }
 
@@ -678,7 +693,10 @@ const Keybindings = () => {
       setDraftByAction((prev) => ({ ...prev, [action]: [] }));
       setErrorByAction((prev) => ({
         ...prev,
-        [action]: { code: ERROR.EMPTY, message: `Shortcut can't be empty.` }
+        [action]: {
+          code: ERROR.EMPTY,
+          message: t('KEYBINDINGS.ERRORS.EMPTY', { defaultValue: 'Shortcut cannot be empty.' })
+        }
       }));
       return;
     }
@@ -785,7 +803,7 @@ const Keybindings = () => {
   return (
     <StyledWrapper className="w-full">
       <div className="section-header">
-        <span>Keybindings</span>
+        <span>{t('PREFERENCES.TABS.KEYBINDINGS', { defaultValue: 'Keybindings' })}</span>
 
         <div className="section-actions">
           <ToggleSwitch
@@ -800,7 +818,7 @@ const Keybindings = () => {
             className="reset-btn"
             data-testid="reset-all-keybindings-btn"
           >
-            Reset Default
+            {t('KEYBINDINGS.RESET_DEFAULT', { defaultValue: 'Reset Default' })}
           </button>
         </div>
       </div>
@@ -811,15 +829,17 @@ const Keybindings = () => {
             <table>
               <thead>
                 <tr>
-                  <td>Command</td>
-                  <td>Keybinding</td>
+                  <td>{t('KEYBINDINGS.TABLE.COMMAND', { defaultValue: 'Command' })}</td>
+                  <td>{t('KEYBINDINGS.TABLE.KEYBINDING', { defaultValue: 'Keybinding' })}</td>
                 </tr>
               </thead>
               <tbody>
                 {groupedKeyMappings.map((section, sectionIndex) => (
                   <React.Fragment key={section.heading}>
                     <tr className="section-heading-row">
-                      <td colSpan={2}>{section.heading}</td>
+                      <td colSpan={2}>
+                        {t(section.headingKey || section.heading, { defaultValue: section.heading })}
+                      </td>
                     </tr>
                     {section.rows.map((row, rowIndex) => {
                       const { action } = row;
@@ -850,7 +870,9 @@ const Keybindings = () => {
                             setHoveredAction((prev) => (prev === action ? null : prev))}
                           onClick={() => !isReadOnly && !isEditing && startEditing(action)}
                         >
-                          <td data-testid={`keybinding-name-${action}`}>{row.name}</td>
+                          <td data-testid={`keybinding-name-${action}`}>
+                            {t(row.nameKey || row.name, { defaultValue: row.name })}
+                          </td>
 
                           <td>
                             <div className="keybinding-row">
@@ -913,7 +935,7 @@ const Keybindings = () => {
                                       onClick={(e) => {
                                         e.stopPropagation(); resetRowToDefault(action);
                                       }}
-                                      title="Reset to default"
+                                      title={t('KEYBINDINGS.RESET_TO_DEFAULT', { defaultValue: 'Reset to default' })}
                                     >
                                       <IconReload size={14} stroke={1.5} />
                                     </button>
@@ -923,7 +945,7 @@ const Keybindings = () => {
                                     <span
                                       className="pencil-icon"
                                       data-testid={`keybinding-edit-${action}`}
-                                      title="Customize keys"
+                                      title={t('KEYBINDINGS.CUSTOMIZE_KEYS', { defaultValue: 'Customize keys' })}
                                     >
                                       <IconPencil size={14} stroke={1.5} />
                                     </span>
@@ -934,7 +956,7 @@ const Keybindings = () => {
                                       type="button"
                                       className="edit-btn"
                                       data-testid={`keybinding-locked-${action}`}
-                                      title="Reserved shortcut"
+                                      title={t('KEYBINDINGS.RESERVED_SHORTCUT', { defaultValue: 'Reserved shortcut' })}
                                     >
                                       <IconLock size={14} stroke={1.5} />
                                     </button>
@@ -952,7 +974,7 @@ const Keybindings = () => {
             </table>
           </div>
         ) : (
-          <div className="empty-state">No key bindings available</div>
+          <div className="empty-state">{t('KEYBINDINGS.EMPTY_STATE', { defaultValue: 'No key bindings available' })}</div>
         )}
       </div>
     </StyledWrapper>

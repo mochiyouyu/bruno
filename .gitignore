@@ -29,6 +29,9 @@ bruno.zip
 npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
+.codex-*.log
+.codex-*.err.log
+debug-suite-run.log
 
 # local env files
 .env.local

@@ -54,12 +54,14 @@ import { useBetaFeature, BETA_FEATURES } from 'utils/beta-features';
 import { useSidebarAccordion } from 'components/Sidebar/SidebarAccordionContext';
 import { createEmptyStateMenuItems } from 'utils/collections/emptyStateRequest';
 import useKeybinding from 'hooks/useKeybinding';
+import { useTranslation } from 'react-i18next';
 
 // Delay before showing empty collection state (ms)
 // This prevents flicker from race condition between loading state and item batch updates
 const EMPTY_STATE_DELAY_MS = 300;
 
 const Collection = ({ collection, searchText }) => {
+  const { t } = useTranslation();
   const isOpenAPISyncEnabled = useBetaFeature(BETA_FEATURES.OPENAPI_SYNC);
   const { dropdownContainerRef } = useSidebarAccordion();
   const [showNewFolderModal, setShowNewFolderModal] = useState(false);
@@ -190,17 +192,17 @@ const Collection = ({ collection, searchText }) => {
   const handleShowInFolder = () => {
     dispatch(showInFolder(collection.pathname)).catch((error) => {
       console.error('Error opening the folder', error);
-      toast.error('Error opening the folder');
+      toast.error(t('SIDEBAR.ERROR_OPENING_FOLDER', { defaultValue: 'Error opening the folder' }));
     });
   };
 
   const handlePasteItem = () => {
     dispatch(pasteItem(collection.uid, null))
       .then(() => {
-        toast.success('Item pasted successfully');
+        toast.success(t('SIDEBAR.ITEM_PASTED_SUCCESS', { defaultValue: 'Item pasted successfully' }));
       })
       .catch((err) => {
-        toast.error(err ? err.message : 'An error occurred while pasting the item');
+        toast.error(err ? err.message : t('SIDEBAR.ITEM_PASTE_ERROR', { defaultValue: 'An error occurred while pasting the item' }));
       });
   };
 
@@ -331,7 +333,7 @@ const Collection = ({ collection, searchText }) => {
     {
       id: 'new-request',
       leftSection: IconFilePlus,
-      label: 'New Request',
+      label: t('SIDEBAR.NEW_REQUEST', { defaultValue: 'New Request' }),
       onClick: () => {
         ensureCollectionIsMounted();
         setShowNewRequestModal(true);
@@ -340,7 +342,7 @@ const Collection = ({ collection, searchText }) => {
     {
       id: 'new-folder',
       leftSection: IconFolderPlus,
-      label: 'New Folder',
+      label: t('SIDEBAR.NEW_FOLDER', { defaultValue: 'New Folder' }),
       onClick: () => {
         ensureCollectionIsMounted();
         setShowNewFolderModal(true);
@@ -349,7 +351,7 @@ const Collection = ({ collection, searchText }) => {
     {
       id: 'run',
       leftSection: IconPlayerPlay,
-      label: 'Run',
+      label: t('SIDEBAR.RUN', { defaultValue: 'Run' }),
       onClick: () => {
         ensureCollectionIsMounted();
         handleRun();
@@ -358,7 +360,7 @@ const Collection = ({ collection, searchText }) => {
     {
       id: 'clone',
       leftSection: IconCopy,
-      label: 'Clone',
+      label: t('SIDEBAR.CLONE', { defaultValue: 'Clone' }),
       testId: 'clone-collection',
       onClick: () => {
         setShowCloneCollectionModalOpen(true);
@@ -368,7 +370,7 @@ const Collection = ({ collection, searchText }) => {
       id: 'sync-openapi',
       leftSection: OpenAPISyncIcon,
       label: 'OpenAPI',
-      rightSection: <StatusBadge status="info" size="xs">Beta</StatusBadge>,
+      rightSection: <StatusBadge status="info" size="xs">{t('SPECIAL_TABS.BETA', { defaultValue: 'Beta' })}</StatusBadge>,
       onClick: openOpenAPISyncTab
     }] : []),
     ...(hasCopiedItems
@@ -376,7 +378,7 @@ const Collection = ({ collection, searchText }) => {
           {
             id: 'paste',
             leftSection: IconClipboard,
-            label: 'Paste',
+            label: t('SIDEBAR.PASTE', { defaultValue: 'Paste' }),
             onClick: handlePasteItem
           }
         ]
@@ -384,7 +386,7 @@ const Collection = ({ collection, searchText }) => {
     {
       id: 'rename',
       leftSection: IconEdit,
-      label: 'Rename',
+      label: t('SIDEBAR.RENAME', { defaultValue: 'Rename' }),
       onClick: () => {
         setShowRenameCollectionModal(true);
       }
@@ -392,7 +394,7 @@ const Collection = ({ collection, searchText }) => {
     {
       id: 'share',
       leftSection: IconShare,
-      label: 'Share',
+      label: t('SIDEBAR.SHARE', { defaultValue: 'Share' }),
       onClick: () => {
         ensureCollectionIsMounted();
         setShowShareCollectionModal(true);
@@ -401,7 +403,7 @@ const Collection = ({ collection, searchText }) => {
     {
       id: 'generate-docs',
       leftSection: IconBook,
-      label: 'Generate Docs',
+      label: t('SIDEBAR.GENERATE_DOCS', { defaultValue: 'Generate Docs' }),
       onClick: () => {
         ensureCollectionIsMounted();
         setShowGenerateDocumentationModal(true);
@@ -410,7 +412,7 @@ const Collection = ({ collection, searchText }) => {
     {
       id: 'collapse',
       leftSection: IconFoldDown,
-      label: 'Collapse',
+      label: t('SIDEBAR.COLLAPSE', { defaultValue: 'Collapse' }),
       onClick: handleCollapseFullCollection
     },
     {
@@ -426,13 +428,13 @@ const Collection = ({ collection, searchText }) => {
     {
       id: 'settings',
       leftSection: IconSettings,
-      label: 'Settings',
+      label: t('SIDEBAR.SETTINGS', { defaultValue: 'Settings' }),
       onClick: viewCollectionSettings
     },
     {
       id: 'terminal',
       leftSection: IconTerminal2,
-      label: 'Open in Terminal',
+      label: t('SIDEBAR.OPEN_IN_TERMINAL', { defaultValue: 'Open in Terminal' }),
       onClick: async () => {
         const collectionCwd = collection.pathname;
         await openDevtoolsAndSwitchToTerminal(dispatch, collectionCwd);
@@ -441,7 +443,7 @@ const Collection = ({ collection, searchText }) => {
     {
       id: 'remove',
       leftSection: IconX,
-      label: 'Remove',
+      label: t('SIDEBAR.REMOVE', { defaultValue: 'Remove' }),
       onClick: () => {
         setShowRemoveCollectionModal(true);
       }
@@ -538,7 +540,7 @@ const Collection = ({ collection, searchText }) => {
                     appendTo={dropdownContainerRef?.current || document.body}
                     popperOptions={{ strategy: 'fixed' }}
                   >
-                    <button className="ml-1 add-request-link">+ Add request</button>
+                    <button className="ml-1 add-request-link">+ {t('SIDEBAR.ADD_REQUEST', { defaultValue: 'Add request' })}</button>
                   </MenuDropdown>
                 </div>
               </div>

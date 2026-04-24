@@ -88,9 +88,11 @@ const menu = Menu.buildFromTemplate(menuTemplate);
 const isMac = process.platform === 'darwin';
 const isWindows = process.platform === 'win32';
 const isLinux = process.platform === 'linux';
+const shouldLoadDevtoolsExtensions = isDev && process.env.BRUNO_LOAD_DEVTOOLS_EXTENSIONS === 'true';
 
 let mainWindow;
 let appProtocolUrl;
+const wait = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
 
 // Helper function to save zoom percentage to preferences and notify renderer
 const saveZoomPreferences = async (percentage) => {
@@ -108,6 +110,41 @@ const saveZoomPreferences = async (percentage) => {
     mainWindow.webContents.send('main:load-preferences', prefs);
   } catch (err) {
     console.error('Failed to save zoom preference:', err);
+  }
+};
+
+const loadRendererUrl = async (url) => {
+  const maxAttempts = isDev ? 20 : 1;
+
+  for (let attempt = 1; attempt <= maxAttempts; attempt++) {
+    try {
+      await mainWindow.loadURL(url);
+      return;
+    } catch (reason) {
+      const isLastAttempt = attempt === maxAttempts;
+
+      if (isLastAttempt) {
+        console.error(`Error: Failed to load URL: "${url}" (Electron shows a blank screen because of this).`);
+        console.error('Original message:', reason);
+        if (isDev) {
+          console.error(
+            'Could not connect to Next.Js dev server, is it running?'
+            + ' Start the dev server using "npm run dev:web" and restart electron'
+          );
+        } else {
+          console.error(
+            'If you are using an official production build: the above error is most likely a bug! '
+            + ' Please report this under: https://github.com/usebruno/bruno/issues'
+          );
+        }
+        return;
+      }
+
+      if (isDev) {
+        console.warn(`Failed to load "${url}", retrying (${attempt}/${maxAttempts - 1})...`);
+        await wait(1000);
+      }
+    }
   }
 };
 
@@ -183,7 +220,7 @@ if (useSingleInstance && !gotTheLock) {
 app.on('ready', async () => {
   initializeShellEnv();
 
-  if (isDev) {
+  if (shouldLoadDevtoolsExtensions) {
     const { installExtension, REDUX_DEVTOOLS, REACT_DEVELOPER_TOOLS } = require('electron-devtools-installer');
     try {
       const extensions = await installExtension([REDUX_DEVTOOLS, REACT_DEVELOPER_TOOLS], {
@@ -198,6 +235,10 @@ app.on('ready', async () => {
     } catch (err) {
       console.error('An error occurred while loading extensions: ', err);
     }
+  } else if (isDev) {
+    console.log(
+      'Skipping Electron devtools extensions. Set BRUNO_LOAD_DEVTOOLS_EXTENSIONS=true to enable them.'
+    );
   }
 
   // Initialize system proxy cache early (non-blocking)
@@ -351,21 +392,7 @@ app.on('ready', async () => {
         slashes: true
       });
 
-  mainWindow.loadURL(url).catch((reason) => {
-    console.error(`Error: Failed to load URL: "${url}" (Electron shows a blank screen because of this).`);
-    console.error('Original message:', reason);
-    if (isDev) {
-      console.error(
-        'Could not connect to Next.Js dev server, is it running?'
-        + ' Start the dev server using "npm run dev:web" and restart electron'
-      );
-    } else {
-      console.error(
-        'If you are using an official production build: the above error is most likely a bug! '
-        + ' Please report this under: https://github.com/usebruno/bruno/issues'
-      );
-    }
-  });
+  loadRendererUrl(url);
 
   let boundsTimeout;
   const handleBoundsChange = () => {

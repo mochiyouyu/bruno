@@ -57,8 +57,10 @@ import ActionIcon from 'ui/ActionIcon';
 import MenuDropdown from 'ui/MenuDropdown';
 import { useSidebarAccordion } from 'components/Sidebar/SidebarAccordionContext';
 import useKeybinding from 'hooks/useKeybinding';
+import { useTranslation } from 'react-i18next';
 
 const CollectionItem = ({ item, collectionUid, collectionPathname, searchText }) => {
+  const { t } = useTranslation();
   const { dropdownContainerRef } = useSidebarAccordion();
   const _isTabForItemActiveSelector = isTabForItemActiveSelector({ itemUid: item.uid });
   const isTabForItemActive = useSelector(_isTabForItemActiveSelector, isEqual);
@@ -321,19 +323,19 @@ const CollectionItem = ({ item, collectionUid, collectionPathname, searchText })
         {
           id: 'new-request',
           leftSection: IconFilePlus,
-          label: 'New Request',
+          label: t('SIDEBAR.NEW_REQUEST', { defaultValue: 'New Request' }),
           onClick: () => setNewRequestModalOpen(true)
         },
         {
           id: 'new-folder',
           leftSection: IconFolderPlus,
-          label: 'New Folder',
+          label: t('SIDEBAR.NEW_FOLDER', { defaultValue: 'New Folder' }),
           onClick: () => setNewFolderModalOpen(true)
         },
         {
           id: 'run',
           leftSection: IconPlayerPlay,
-          label: 'Run',
+          label: t('SIDEBAR.RUN', { defaultValue: 'Run' }),
           onClick: () => setRunCollectionModalOpen(true)
         }
       );
@@ -343,13 +345,13 @@ const CollectionItem = ({ item, collectionUid, collectionPathname, searchText })
       {
         id: 'clone',
         leftSection: IconCopy,
-        label: 'Clone',
+        label: t('SIDEBAR.CLONE', { defaultValue: 'Clone' }),
         onClick: () => setCloneItemModalOpen(true)
       },
       {
         id: 'copy',
         leftSection: IconCopy,
-        label: 'Copy',
+        label: t('SIDEBAR.COPY', { defaultValue: 'Copy' }),
         onClick: handleCopyItem
       }
     );
@@ -358,7 +360,7 @@ const CollectionItem = ({ item, collectionUid, collectionPathname, searchText })
       items.push({
         id: 'paste',
         leftSection: IconClipboard,
-        label: 'Paste',
+        label: t('SIDEBAR.PASTE', { defaultValue: 'Paste' }),
         onClick: handlePasteItem
       });
     }
@@ -367,7 +369,7 @@ const CollectionItem = ({ item, collectionUid, collectionPathname, searchText })
       {
         id: 'rename',
         leftSection: IconEdit,
-        label: 'Rename',
+        label: t('SIDEBAR.RENAME', { defaultValue: 'Rename' }),
         onClick: () => setRenameItemModalOpen(true)
       }
     );
@@ -375,7 +377,7 @@ const CollectionItem = ({ item, collectionUid, collectionPathname, searchText })
       items.push({
         id: 'run',
         leftSection: IconPlayerPlay,
-        label: 'Run',
+        label: t('SIDEBAR.RUN', { defaultValue: 'Run' }),
         onClick: () => {
           handleRun();
         }
@@ -386,7 +388,7 @@ const CollectionItem = ({ item, collectionUid, collectionPathname, searchText })
       items.push({
         id: 'generate-code',
         leftSection: IconCode,
-        label: 'Generate Code',
+        label: t('SIDEBAR.GENERATE_CODE', { defaultValue: 'Generate Code' }),
         onClick: handleGenerateCode
       });
     }
@@ -395,7 +397,7 @@ const CollectionItem = ({ item, collectionUid, collectionPathname, searchText })
       items.push({
         id: 'create-example',
         leftSection: ExampleIcon,
-        label: 'Create Example',
+        label: t('SIDEBAR.CREATE_EXAMPLE', { defaultValue: 'Create Example' }),
         onClick: () => setCreateExampleModalOpen(true)
       });
     }
@@ -414,7 +416,7 @@ const CollectionItem = ({ item, collectionUid, collectionPathname, searchText })
     items.push({
       id: 'info',
       leftSection: IconInfoCircle,
-      label: 'Info',
+      label: t('SIDEBAR.INFO', { defaultValue: 'Info' }),
       onClick: () => setItemInfoModalOpen(true)
     });
 
@@ -423,13 +425,13 @@ const CollectionItem = ({ item, collectionUid, collectionPathname, searchText })
         {
           id: 'settings',
           leftSection: IconSettings,
-          label: 'Settings',
+          label: t('SIDEBAR.SETTINGS', { defaultValue: 'Settings' }),
           onClick: viewFolderSettings
         },
         {
           id: 'open-terminal',
           leftSection: IconTerminal2,
-          label: 'Open in Terminal',
+          label: t('SIDEBAR.OPEN_IN_TERMINAL', { defaultValue: 'Open in Terminal' }),
           onClick: async () => {
             const folderCwd = item.pathname || collectionPathname;
             await openDevtoolsAndSwitchToTerminal(dispatch, folderCwd);
@@ -441,7 +443,7 @@ const CollectionItem = ({ item, collectionUid, collectionPathname, searchText })
     items.push({
       id: 'delete',
       leftSection: IconTrash,
-      label: 'Delete',
+      label: t('SIDEBAR.DELETE', { defaultValue: 'Delete' }),
       className: 'delete-item',
       onClick: () => setDeleteItemModalOpen(true)
     });
@@ -477,7 +479,7 @@ const CollectionItem = ({ item, collectionUid, collectionPathname, searchText })
   const handleShowInFolder = () => {
     dispatch(showInFolder(item.pathname)).catch((error) => {
       console.error('Error opening the folder', error);
-      toast.error('Error opening the folder');
+      toast.error(t('SIDEBAR.ERROR_OPENING_FOLDER', { defaultValue: 'Error opening the folder' }));
     });
   };
 
@@ -521,7 +523,10 @@ const CollectionItem = ({ item, collectionUid, collectionPathname, searchText })
       exampleIndex: exampleIndex
     }));
 
-    toast.success(`Example "${name}" created successfully`);
+    toast.success(t('SIDEBAR.EXAMPLE_CREATED_SUCCESS', {
+      defaultValue: 'Example "{{name}}" created successfully',
+      name
+    }));
     setCreateExampleModalOpen(false);
   };
 
@@ -538,7 +543,7 @@ const CollectionItem = ({ item, collectionUid, collectionPathname, searchText })
     ) {
       setGenerateCodeItemModalOpen(true);
     } else {
-      toast.error('URL is required');
+      toast.error(t('SIDEBAR.URL_REQUIRED', { defaultValue: 'URL is required' }));
     }
   };
 
@@ -560,8 +565,11 @@ const CollectionItem = ({ item, collectionUid, collectionPathname, searchText })
 
   const handleCopyItem = () => {
     dispatch(copyRequest(item));
-    const itemType = isFolder ? 'Folder' : 'Request';
-    toast.success(`${itemType} copied`);
+    toast.success(
+      isFolder
+        ? t('SIDEBAR.FOLDER_COPIED', { defaultValue: 'Folder copied' })
+        : t('SIDEBAR.REQUEST_COPIED', { defaultValue: 'Request copied' })
+    );
   };
 
   const handlePasteItem = () => {
@@ -574,10 +582,10 @@ const CollectionItem = ({ item, collectionUid, collectionPathname, searchText })
 
     dispatch(pasteItem(collectionUid, targetFolderUid))
       .then(() => {
-        toast.success('Item pasted successfully');
+        toast.success(t('SIDEBAR.ITEM_PASTED_SUCCESS', { defaultValue: 'Item pasted successfully' }));
       })
       .catch((err) => {
-        toast.error(err ? err.message : 'An error occurred while pasting the item');
+        toast.error(err ? err.message : t('SIDEBAR.ITEM_PASTE_ERROR', { defaultValue: 'An error occurred while pasting the item' }));
       });
   };
 
@@ -622,7 +630,7 @@ const CollectionItem = ({ item, collectionUid, collectionPathname, searchText })
         isOpen={createExampleModalOpen}
         onClose={() => setCreateExampleModalOpen(false)}
         onSave={handleCreateExample}
-        title="Create Response Example"
+        title={t('SIDEBAR.CREATE_RESPONSE_EXAMPLE', { defaultValue: 'Create Response Example' })}
         initialName={getInitialExampleName(item)}
       />
       <div
@@ -733,7 +741,7 @@ const CollectionItem = ({ item, collectionUid, collectionPathname, searchText })
                   appendTo={dropdownContainerRef?.current || document.body}
                   popperOptions={{ strategy: 'fixed' }}
                 >
-                  <button className="ml-1 add-request-link">+ Add request</button>
+                  <button className="ml-1 add-request-link">+ {t('SIDEBAR.ADD_REQUEST', { defaultValue: 'Add request' })}</button>
                 </MenuDropdown>
               </div>
             </div>

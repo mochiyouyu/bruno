@@ -1,4 +1,13 @@
-const { sanitizeName, isWSLPath, normalizeWSLPath, normalizeAndResolvePath, isLargeFile } = require('./filesystem.js');
+const path = require('path');
+const os = require('os');
+const {
+  sanitizeName,
+  isWSLPath,
+  normalizeWSLPath,
+  normalizeAndResolvePath,
+  isLargeFile,
+  createDirectory
+} = require('./filesystem.js');
 const fs = require('fs-extra');
 
 describe('sanitizeName', () => {
@@ -75,6 +84,34 @@ describe('isLargeFile', () => {
     lstatSyncSpy.mockReturnValue({ isFile: () => false });
 
     expect(() => isLargeFile('/path/not-a-file.bin')).toThrow('File /path/not-a-file.bin is not a file');
+  });
+});
+
+describe('createDirectory', () => {
+  let tempRoot;
+
+  beforeEach(() => {
+    tempRoot = fs.mkdtempSync(path.join(os.tmpdir(), 'bruno-fs-'));
+  });
+
+  afterEach(() => {
+    fs.removeSync(tempRoot);
+  });
+
+  it('should create nested directories when parent folders do not exist', async () => {
+    const nestedDir = path.join(tempRoot, 'workspace', 'collections', 'my-collection');
+
+    await createDirectory(nestedDir);
+
+    expect(fs.existsSync(nestedDir)).toBe(true);
+    expect(fs.lstatSync(nestedDir).isDirectory()).toBe(true);
+  });
+
+  it('should throw when target directory already exists', async () => {
+    const existingDir = path.join(tempRoot, 'existing');
+    fs.mkdirSync(existingDir);
+
+    await expect(createDirectory(existingDir)).rejects.toThrow(`directory: ${existingDir} already exists`);
   });
 });
 

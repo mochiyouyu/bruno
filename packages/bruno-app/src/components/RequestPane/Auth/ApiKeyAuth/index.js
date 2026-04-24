@@ -4,14 +4,15 @@ import get from 'lodash/get';
 import { IconCaretDown } from '@tabler/icons';
 import Dropdown from 'components/Dropdown';
 import { useTheme } from 'providers/Theme';
+import { useTranslation } from 'react-i18next';
 import SingleLineEditor from 'components/SingleLineEditor';
 import { sendRequest } from 'providers/ReduxStore/slices/collections/actions';
 import StyledWrapper from './StyledWrapper';
-import { humanizeRequestAPIKeyPlacement } from 'utils/collections';
 
 const ApiKeyAuth = ({ item, collection, updateAuth, request, save }) => {
   const dispatch = useDispatch();
   const { storedTheme } = useTheme();
+  const { t } = useTranslation();
   const dropdownTippyRef = useRef();
   const onDropdownCreate = (ref) => (dropdownTippyRef.current = ref);
 
@@ -26,7 +27,9 @@ const ApiKeyAuth = ({ item, collection, updateAuth, request, save }) => {
   const Icon = forwardRef((props, ref) => {
     return (
       <div ref={ref} className="flex items-center justify-end auth-type-label select-none">
-        {humanizeRequestAPIKeyPlacement(apikeyAuth?.placement)}
+        {apikeyAuth?.placement === 'queryparams'
+          ? t('REQUEST_PANE.AUTH_FORM.QUERY_PARAM', { defaultValue: 'Query Param' })
+          : t('REQUEST_PANE.AUTH_FORM.HEADER', { defaultValue: 'Header' })}
         <IconCaretDown className="caret ml-1 mr-1" size={14} strokeWidth={2} />
       </div>
     );
@@ -62,7 +65,7 @@ const ApiKeyAuth = ({ item, collection, updateAuth, request, save }) => {
 
   return (
     <StyledWrapper className="w-full">
-      <label className="block mb-1">Key</label>
+      <label className="block mb-1">{t('REQUEST_PANE.AUTH_FORM.KEY', { defaultValue: 'Key' })}</label>
       <div className="single-line-editor-wrapper mb-3">
         <SingleLineEditor
           value={apikeyAuth.key || ''}
@@ -75,7 +78,7 @@ const ApiKeyAuth = ({ item, collection, updateAuth, request, save }) => {
         />
       </div>
 
-      <label className="block mb-1">Value</label>
+      <label className="block mb-1">{t('REQUEST_PANE.AUTH_FORM.VALUE', { defaultValue: 'Value' })}</label>
       <div className="single-line-editor-wrapper mb-3">
         <SingleLineEditor
           value={apikeyAuth.value || ''}
@@ -88,7 +91,7 @@ const ApiKeyAuth = ({ item, collection, updateAuth, request, save }) => {
         />
       </div>
 
-      <label className="block mb-1">Add To</label>
+      <label className="block mb-1">{t('REQUEST_PANE.AUTH_FORM.ADD_TO', { defaultValue: 'Add To' })}</label>
       <div className="inline-flex items-center cursor-pointer auth-placement-selector w-fit">
         <Dropdown onCreate={onDropdownCreate} icon={<Icon />} placement="bottom-end">
           <div
@@ -98,7 +101,7 @@ const ApiKeyAuth = ({ item, collection, updateAuth, request, save }) => {
               handleAuthChange('placement', 'header');
             }}
           >
-            Header
+            {t('REQUEST_PANE.AUTH_FORM.HEADER', { defaultValue: 'Header' })}
           </div>
           <div
             className="dropdown-item"
@@ -107,7 +110,7 @@ const ApiKeyAuth = ({ item, collection, updateAuth, request, save }) => {
               handleAuthChange('placement', 'queryparams');
             }}
           >
-            Query Param
+            {t('REQUEST_PANE.AUTH_FORM.QUERY_PARAM', { defaultValue: 'Query Param' })}
           </div>
         </Dropdown>
       </div>

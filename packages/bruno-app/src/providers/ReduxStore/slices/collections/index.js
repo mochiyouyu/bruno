@@ -3057,6 +3057,9 @@ export const collectionsSlice = createSlice({
           info.isRecursive = isRecursive;
           info.cancelTokenUid = cancelTokenUid;
           info.status = 'started';
+          info.runMode = action.payload.runMode || 'runner';
+          info.suiteId = action.payload.suiteId || null;
+          info.suiteName = action.payload.suiteName || null;
         }
 
         if (type === 'testrun-ended') {
@@ -3073,7 +3076,12 @@ export const collectionsSlice = createSlice({
         if (type === 'request-queued') {
           collection.runnerResult.items.push({
             uid: request.uid,
-            status: 'queued'
+            status: 'queued',
+            scenarioId: action.payload.scenarioId || null,
+            scenarioName: action.payload.scenarioName || null,
+            suiteId: action.payload.suiteId || null,
+            suiteName: action.payload.suiteName || null,
+            executionIndex: action.payload.executionIndex
           });
         }
 
