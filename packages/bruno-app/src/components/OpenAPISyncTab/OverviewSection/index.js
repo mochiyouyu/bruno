@@ -1,6 +1,5 @@
 import { useMemo } from 'react';
 import { useSelector } from 'react-redux';
-import { selectStoredSpecMeta } from 'providers/ReduxStore/slices/openapi-sync';
 import { getTotalRequestCountInCollection } from 'utils/collections/';
 import moment from 'moment';
 import { IconCheck } from '@tabler/icons';
@@ -13,7 +12,7 @@ const capitalize = (str) => str ? str.charAt(0).toUpperCase() + str.slice(1) : s
 const OverviewSection = ({ collection, storedSpec, collectionDrift, specDrift, remoteDrift, onTabSelect, error, onOpenSettings }) => {
   const openApiSyncConfig = collection?.brunoConfig?.openapi?.[0];
   const reduxError = useSelector((state) => state.openapiSync?.collectionUpdates?.[collection.uid]?.error);
-  const specMeta = useSelector(selectStoredSpecMeta(collection.uid));
+  const specMeta = useSelector((state) => state.openapiSync?.storedSpecMeta?.[collection.uid] || null);
   const { t } = useTranslation();
 
   const activeError = error || reduxError;
