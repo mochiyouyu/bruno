@@ -1,0 +1,27 @@
+meta {
+  name: MAuthManage - Get User Info
+  type: http
+  seq: 5
+}
+
+post {
+  url: {{mauthManageBaseUrl}}/MAuthManage/userinfos/getUserInfo.action
+  body: json
+  auth: none
+}
+
+headers {
+  Content-Type: application/json
+}
+
+body:json {
+  {
+    "page": 1,
+    "rows": 10
+  }
+}
+
+docs {
+  Source: demo Python requests script.
+  TODO: Verify headers/cookies/session-dependent values from the original Python flow.
+}

@@ -69,15 +69,106 @@ const addCryptoUtilsShimToContext = async (vm) => {
     }
   });
 
+  let createHashDigestHandle = vm.newFunction('createHashDigest', function (algorithmHandle, chunksHandle, encodingHandle) {
+    try {
+      const algorithm = vm.dump(algorithmHandle);
+      const chunks = vm.dump(chunksHandle);
+      const encoding = vm.dump(encodingHandle);
+      const hash = crypto.createHash(algorithm);
+
+      chunks.forEach((chunk) => {
+        hash.update(Buffer.from(chunk));
+      });
+
+      const digest = hash.digest(encoding || undefined);
+      return marshallToVm(typeof digest === 'string' ? digest : Array.from(digest), vm);
+    } catch (error) {
+      const vmError = vm.newError(error.message);
+      vm.setProp(vmError, 'name', vm.newString(error.name));
+
+      throw vmError;
+    }
+  });
+
+  let createHmacDigestHandle = vm.newFunction('createHmacDigest', function (algorithmHandle, keyHandle, chunksHandle, encodingHandle) {
+    try {
+      const algorithm = vm.dump(algorithmHandle);
+      const key = vm.dump(keyHandle);
+      const chunks = vm.dump(chunksHandle);
+      const encoding = vm.dump(encodingHandle);
+      const hmac = crypto.createHmac(algorithm, Buffer.from(key));
+
+      chunks.forEach((chunk) => {
+        hmac.update(Buffer.from(chunk));
+      });
+
+      const digest = hmac.digest(encoding || undefined);
+      return marshallToVm(typeof digest === 'string' ? digest : Array.from(digest), vm);
+    } catch (error) {
+      const vmError = vm.newError(error.message);
+      vm.setProp(vmError, 'name', vm.newString(error.name));
+
+      throw vmError;
+    }
+  });
+
+  let randomUUIDHandle = vm.newFunction('randomUUID', function () {
+    try {
+      return vm.newString(crypto.randomUUID());
+    } catch (error) {
+      const vmError = vm.newError(error.message);
+      vm.setProp(vmError, 'name', vm.newString(error.name));
+
+      throw vmError;
+    }
+  });
+
   // Set the functions in global context
   vm.setProp(vm.global, '__bruno__crypto__randomBytes', randomBytesHandle);
   vm.setProp(vm.global, '__bruno__crypto__getRandomValues', getRandomValuesHandle);
+  vm.setProp(vm.global, '__bruno__crypto__createHashDigest', createHashDigestHandle);
+  vm.setProp(vm.global, '__bruno__crypto__createHmacDigest', createHmacDigestHandle);
+  vm.setProp(vm.global, '__bruno__crypto__randomUUID', randomUUIDHandle);
   randomBytesHandle.dispose();
   getRandomValuesHandle.dispose();
+  createHashDigestHandle.dispose();
+  createHmacDigestHandle.dispose();
+  randomUUIDHandle.dispose();
 
   vm.evalCode(`
     // Helper function for typed array serialization
     ${serializeTypedArray.toString()}
+
+    const normalizeCryptoInput = (data, inputEncoding) => {
+      if (typeof data === 'string') {
+        return Array.from(Buffer.from(data, inputEncoding));
+      }
+
+      if (data && typeof data.length === 'number') {
+        return Array.from(Buffer.from(data));
+      }
+
+      throw new TypeError('The "data" argument must be of type string or an instance of Buffer, TypedArray, or DataView');
+    };
+
+    function createDigestBuilder(digestFn, algorithm, key) {
+      const chunks = [];
+      const hasKey = arguments.length > 2;
+
+      return {
+        update: function(data, inputEncoding) {
+          chunks.push(normalizeCryptoInput(data, inputEncoding));
+          return this;
+        },
+        digest: function(encoding) {
+          const digest = hasKey
+            ? digestFn(algorithm, normalizeCryptoInput(key), chunks, encoding)
+            : digestFn(algorithm, chunks, encoding);
+
+          return typeof digest === 'string' ? digest : Buffer.from(Array.from(digest));
+        }
+      };
+    }
     
     // Create crypto module object following Node.js specifications
     const cryptoModule = {
@@ -92,10 +183,24 @@ const addCryptoUtilsShimToContext = async (vm) => {
         typedArray.set(globalThis.__bruno__crypto__getRandomValues(serializedTypedArray));
         return typedArray;
       },
+      createHash: function(algorithm) {
+        return createDigestBuilder(globalThis.__bruno__crypto__createHashDigest, algorithm);
+      },
+      createHmac: function(algorithm, key) {
+        return createDigestBuilder(globalThis.__bruno__crypto__createHmacDigest, algorithm, key);
+      },
+      randomUUID: function() {
+        return globalThis.__bruno__crypto__randomUUID();
+      },
     };
     
     // Make crypto available globally
     globalThis.crypto = cryptoModule;
+    globalThis.requireObject = {
+      ...(globalThis.requireObject || {}),
+      crypto: cryptoModule,
+      'node:crypto': cryptoModule,
+    };
   `);
 };
 

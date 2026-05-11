@@ -1,0 +1,22 @@
+meta {
+  name: Mock Demo - List Users
+  type: http
+  seq: 1
+}
+
+get {
+  url: http://{{localIp}}:8000/mock/demo/users
+  body: none
+  auth: none
+}
+
+params:query {
+  page: 1
+  page_size: 2
+  keyword: a
+}
+
+docs {
+  Source: demo Python requests script.
+  TODO: Verify headers/cookies/session-dependent values from the original Python flow.
+}

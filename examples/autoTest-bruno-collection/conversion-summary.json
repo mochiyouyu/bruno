@@ -1,0 +1,26 @@
+{
+  "structured_yaml_entries_seen": 318,
+  "unique_yaml_requests_converted": 267,
+  "manual_python_demo_requests": 5,
+  "total_request_files": 272,
+  "groups": {
+    "auth": 4,
+    "cert": 22,
+    "envelope": 10,
+    "eventCert": 4,
+    "linux": 17,
+    "mobilePC": 10,
+    "offline": 2,
+    "otp": 22,
+    "pdf": 26,
+    "qrcode": 6,
+    "sdk": 21,
+    "secret": 10,
+    "sign": 6,
+    "sso": 14,
+    "stamper": 24,
+    "user": 35,
+    "windows": 34
+  },
+  "source_errors": []
+}

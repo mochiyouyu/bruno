@@ -1,0 +1,16 @@
+meta {
+  name: MAuthManage - Verify Code Image
+  type: http
+  seq: 3
+}
+
+get {
+  url: {{mauthManageBaseUrl}}/MAuthManage/getVerifyCodeImg.action
+  body: none
+  auth: none
+}
+
+docs {
+  Source: demo Python requests script.
+  TODO: Verify headers/cookies/session-dependent values from the original Python flow.
+}

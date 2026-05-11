@@ -1,0 +1,35 @@
+meta {
+  name: getLockCode
+  type: http
+  seq: 7
+}
+
+get {
+  url: {{mauthBaseUrl}}/MAuthServer/user/getLockCode
+  body: none
+  auth: none
+}
+
+params:query {
+  username: {{username}}
+  imei: {{imei}}
+  istoken: 2
+  mobile: {{mobile}}
+  realname: 寮犱笁
+  email: {{email}}
+  code:
+  flag: 5
+  hashId:
+  hashUserAccount:
+  hashMobile:
+  hashFundAccount:
+  hashOtherAccount:
+  isnew: 0
+}
+
+docs {
+  Source: demo\user_controller_data.yaml
+  Source case: 娉ㄥ唽鐢ㄦ埛
+  Validate: NONE
+  TODO: Review dynamic values formerly produced by pytest/extract.yaml before running.
+}

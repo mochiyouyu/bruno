@@ -1,0 +1,21 @@
+meta {
+  name: MAuthManage - Login
+  type: http
+  seq: 4
+}
+
+get {
+  url: {{mauthManageBaseUrl}}/MAuthManage/login.action
+  body: none
+  auth: none
+}
+
+params:query {
+  loginName: admin
+  password: {{password}}
+}
+
+docs {
+  Source: demo Python requests script.
+  TODO: Verify headers/cookies/session-dependent values from the original Python flow.
+}

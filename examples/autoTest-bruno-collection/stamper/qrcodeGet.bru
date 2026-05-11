@@ -1,0 +1,55 @@
+meta {
+  name: qrcodeGet
+  type: http
+  seq: 9
+}
+
+get {
+  url: {{mauthBaseUrl}}/MAuthServer/stamper/qrcode/image/get
+  body: none
+  auth: none
+}
+
+params:query {
+  username: {{username}}
+  imei: {{imei}}
+  istoken: 2
+  mobile: {{mobile}}
+  realname: 寮犱笁
+  email: {{email}}
+  code:
+  flag: 5
+  hashId:
+  hashUserAccount:
+  hashMobile:
+  hashFundAccount:
+  hashOtherAccount:
+  isnew: 0
+  plaintext: 寮犱笁
+  dn: CN=zhangsan
+  otpType: 2
+  challenge: 111
+  length: 6
+  serviceCode: 111
+  serviceName: 111
+  ip: {{localIp}}
+  isOn: 1
+  deptId: 1
+  loginName: zhangsan
+  clientId: 11111111111111111111
+  companyname: INFOSEC
+  stampertype: 1
+  picdata: F:\\FileData\\picture\\stamper.png
+  file: F:\\FileData\\picture\\test01.pdf
+  businesscode: infosec
+  digestalg: SM3
+  pos: 0@0@0@0
+  page: 1
+}
+
+docs {
+  Source: jjhy7\user_controller.yaml
+  Source case: 娉ㄥ唽鐢ㄦ埛
+  Validate: NONE
+  TODO: Review dynamic values formerly produced by pytest/extract.yaml before running.
+}

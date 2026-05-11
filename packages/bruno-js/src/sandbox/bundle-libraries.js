@@ -13,6 +13,7 @@ const bundleLibraries = async () => {
     import btoa from "btoa";
     import atob from "atob";
     import * as cryptoJs from 'crypto-js';
+    import * as smCrypto from 'sm-crypto';
     import tv4 from "tv4";
     import Ajv from "ajv";
     import addFormats from "ajv-formats";
@@ -33,6 +34,7 @@ const bundleLibraries = async () => {
       'btoa': btoa,
       'atob': atob,
       'crypto-js': cryptoJs,
+      'sm-crypto': smCrypto,
       'tv4': tv4,
       'ajv': Ajv,
       'ajv-formats': addFormats

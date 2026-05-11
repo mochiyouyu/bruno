@@ -692,8 +692,8 @@ export default function RunnerResults({ collection }) {
             onSubmit={handleSaveSuite}
           />
         ) : null}
-        <div className="flex overflow-hidden max-h-full h-full">
-          <div className="w-1/2 pr-4">
+        <div className="flex overflow-hidden max-h-full h-full min-h-0">
+          <div className="runner-options-panel w-1/2 pr-4 pb-4 min-h-0 overflow-y-auto">
             <div className="font-medium mt-6 title flex items-center">
               <IconRun size={20} strokeWidth={1.5} className="mr-2" />
               {t('SPECIAL_TABS.RUNNER', { defaultValue: 'Runner' })}
@@ -885,7 +885,7 @@ export default function RunnerResults({ collection }) {
             </div>
           </div>
 
-          <div className="run-config-panel w-1/2 border-l">
+          <div className="run-config-panel w-1/2 border-l min-h-0">
             <RunConfigurationPanel
               collection={collection}
               selectedItems={selectedRequestItems}

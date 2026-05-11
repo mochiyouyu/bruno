@@ -404,6 +404,7 @@ Bruno 是一个以本地文件为中心的 API 探索与测试工具，核心形
 - 现有证据：
   - `packages/bruno-js/src/sandbox/node-vm/index.spec.js`
   - `tests/scripting/bru-api/isSafeMode/*`
+- 扩展说明：`docs/analysis/script-sandbox-module-whitelist-cn.md`
 
 #### 3.7.4 内置测试框架与断言运行时
 

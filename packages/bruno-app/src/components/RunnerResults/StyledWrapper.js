@@ -162,7 +162,21 @@ const Wrapper = styled.div`
     border: 1px solid ${(props) => props.theme.border.border0};
     border-radius: ${(props) => props.theme.border.radius.base};
     background-color: ${(props) => props.theme.background.surface0};
-    overflow: hidden;
+    max-height: min(18rem, 42vh);
+    overflow-y: auto;
+
+    &::-webkit-scrollbar {
+      width: 6px;
+    }
+
+    &::-webkit-scrollbar-track {
+      background: transparent;
+    }
+
+    &::-webkit-scrollbar-thumb {
+      background-color: ${(props) => props.theme.console.scrollbarThumb};
+      border-radius: 3px;
+    }
   }
 
   .suite-panel-empty {

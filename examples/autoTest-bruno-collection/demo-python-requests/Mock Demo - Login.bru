@@ -1,0 +1,27 @@
+meta {
+  name: Mock Demo - Login
+  type: http
+  seq: 2
+}
+
+post {
+  url: http://{{localIp}}:8000/mock/demo/login
+  body: json
+  auth: none
+}
+
+headers {
+  Content-Type: application/json
+}
+
+body:json {
+  {
+    "username": "alice",
+    "password": "123456"
+  }
+}
+
+docs {
+  Source: demo Python requests script.
+  TODO: Verify headers/cookies/session-dependent values from the original Python flow.
+}

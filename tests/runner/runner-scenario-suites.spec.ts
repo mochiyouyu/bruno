@@ -138,6 +138,47 @@ test.describe('Runner Scenario Suites', () => {
     });
   });
 
+  test('should keep the scenario suite list scrollable in a short viewport', async ({ pageWithUserData: page }) => {
+    const names = createRunnerEntityNames();
+    await page.setViewportSize({ width: 1280, height: 520 });
+
+    await test.step('Prepare runner with developer sandbox and Prod environment', async () => {
+      await setSandboxMode(page, COLLECTION_NAME, 'developer');
+      await page.getByTestId('environment-selector-trigger').click();
+      await page.locator('.dropdown-item').getByText('Prod', { exact: true }).click();
+      await openRunnerTab(page, COLLECTION_NAME);
+      await waitForRunnerRequestsInitialized(page);
+    });
+
+    await test.step('Create enough scenarios to overflow the suite panel', async () => {
+      await selectRunnerRequests(page, ['echo json']);
+
+      for (let index = 1; index <= 8; index += 1) {
+        await saveRunnerScenario(page, `${names.scenarioA} ${index}`);
+      }
+    });
+
+    await test.step('Verify suite panel can scroll independently', async () => {
+      const suitePanel = page.locator('.suite-panel').first();
+      await expect(suitePanel).toBeVisible();
+
+      const metrics = await suitePanel.evaluate((element) => ({
+        clientHeight: element.clientHeight,
+        overflowY: window.getComputedStyle(element).overflowY,
+        scrollHeight: element.scrollHeight
+      }));
+
+      expect(metrics.overflowY).toMatch(/auto|scroll/);
+      expect(metrics.scrollHeight).toBeGreaterThan(metrics.clientHeight);
+
+      await suitePanel.evaluate((element) => {
+        element.scrollTop = element.scrollHeight;
+      });
+
+      await expect.poll(() => suitePanel.evaluate((element) => element.scrollTop)).toBeGreaterThan(0);
+    });
+  });
+
   test('should render the runner scenario suite workflow in Chinese when the language preference is zh-CN', async ({ createTmpDir, restartApp }) => {
     const initUserDataPath = await createRunnerInitUserData(createTmpDir, (preferences) => ({
       ...preferences,
